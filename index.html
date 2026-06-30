@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Бензин Астрахань - Карта</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        :root {
+            --bg: #ffffff;
+            --surface: #f2f2f7;
+            --surface2: #e5e5ea;
+            --text: #1a1a1a;
+            --text-secondary: #8e8e93;
+            --border: #e0e0e0;
+            --shadow: rgba(0,0,0,0.1);
+            --btn-bg: #ffffff;
+            --btn-border: #d1d1d6;
+            --btn-selected-bg: #e8f0fe;
+            --btn-selected-border: #007aff;
+            --btn-selected-text: #007aff;
+            --has-fuel: #34c759;
+            --no-fuel: #ff3b30;
+            --accent: #007aff;
+            --panel-bg: #ffffff;
+            --badge-fuel-bg: #d4f7dc;
+            --badge-fuel-text: #1a7f2e;
+            --badge-no-fuel-bg: #fdd;
+            --badge-no-fuel-text: #c41e1e;
+            --badge-queue-bg: #fff3cd;
+            --badge-queue-text: #856404;
+            --comment-bg: #f2f2f7;
+            --legend-bg: rgba(255,255,255,0.95);
+            --filter-bg: rgba(255,255,255,0.95);
+            --map-tiles: 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png';
+        }
+
+        [data-theme="dark"] {
+            --bg: #1c1c1e;
+            --surface: #2c2c2e;
+            --surface2: #3a3a3c;
+            --text: #ffffff;
+            --text-secondary: #8e8e93;
+            --border: #3a3a3c;
+            --shadow: rgba(0,0,0,0.5);
+            --btn-bg: #2c2c2e;
+            --btn-border: #48484a;
+            --btn-selected-bg: #1a3a5c;
+            --btn-selected-border: #0a84ff;
+            --btn-selected-text: #0a84ff;
+            --has-fuel: #30d158;
+            --no-fuel: #ff453a;
+            --accent: #0a84ff;
+            --panel-bg: #1c1c1e;
+            --badge-fuel-bg: #1a3d24;
+            --badge-fuel-text: #30d158;
+            --badge-no-fuel-bg: #3d1a1a;
+            --badge-no-fuel-text: #ff453a;
+            --badge-queue-bg: #3d3520;
+            --badge-queue-text: #ffd60a;
+            --comment-bg: #2c2c2e;
+            --legend-bg: rgba(28,28,30,0.95);
+            --filter-bg: rgba(28,28,30,0.95);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            height: 100vh;
+            height: 100dvh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            touch-action: manipulation;
+            transition: background 0.3s, color 0.3s;
+        }
+
+        /* Шапка */
+        .header {
+            padding: 10px 16px;
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            z-index: 1001;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+        .header-left h1 {
+            font-size: 17px;
+            font-weight: 700;
+            line-height: 1.2;
+        }
+        .header-left .subtitle {
+            font-size: 11px;
+            color: var(--text-secondary);
+        }
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .theme-toggle {
+            width: 38px;
+            height: 38px;
+            border-radius: 19px;
+            border: 2px solid var(--border);
+            background: var(--btn-bg);
+            cursor: pointer;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+        .theme-toggle:active {
+            transform: scale(0.95);
+        }
+
+        /* Контейнер карты */
+        #map {
+            flex: 1;
+            width: 100%;
+            z-index: 1;
+        }
+
+        /* Панель фильтров (слева сверху) */
+        .filter-panel {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: var(--filter-bg);
+            padding: 8px;
+            border-radius: 12px;
+            box-shadow: 0 2px 12px var(--shadow);
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            backdrop-filter: blur(10px);
+            min-width: 130px;
+        }
+        .filter-btn {
+            padding: 8px 12px;
+            border-radius: 8px;
+            border: none;
+            background: transparent;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            text-align: left;
+            color: var(--text);
+            transition: all 0.15s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            white-space: nowrap;
+        }
+        .filter-btn.active {
+            background: var(--accent);
+            color: #ffffff;
+        }
+        .filter-btn:active {
+            opacity: 0.7;
+        }
+        .filter-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            flex-shrink: 0;
+            border: 1.5px solid rgba(255,255,255,0.5);
+            box-shadow: 0 0 0 1px rgba(0,0,0,0.15);
+        }
+        .filter-count {
+            margin-left: auto;
+            font-size: 11px;
+            opacity: 0.8;
+            background: rgba(0,0,0,0.08);
+            padding: 2px 7px;
+            border-radius: 10px;
+        }
+        [data-theme="dark"] .filter-count {
+            background: rgba(255,255,255,0.1);
+        }
+
+        /* Легенда (справа вверху, компактно) */
+        .legend {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: var(--legend-bg);
+            padding: 6px 10px;
+            border-radius: 8px;
+            font-size: 11px;
+            box-shadow: 0 2px 8px var(--shadow);
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+            backdrop-filter: blur(10px);
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .legend-color {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            border: 1.5px solid rgba(255,255,255,0.6);
+            box-shadow: 0 0 0 1px rgba(0,0,0,0.2);
+            flex-shrink: 0;
+        }
+
+        /* Компактная панель отзыва */
+        .comment-panel {
+            position: absolute;
+            bottom: 16px;
+            right: 12px;
+            left: 12px;
+            background: var(--panel-bg);
+            border-radius: 14px;
+            padding: 12px;
+            box-shadow: 0 -2px 24px var(--shadow);
+            z-index: 1000;
+            display: none;
+            max-height: 45vh;
+            overflow-y: auto;
+            transition: background 0.3s;
+        }
+        .comment-panel.active {
+            display: block;
+        }
+        .panel-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        .panel-header h3 {
+            font-size: 14px;
+            font-weight: 600;
+            line-height: 1.3;
+        }
+        .panel-header .address {
+            font-size: 11px;
+            color: var(--text-secondary);
+        }
+        .close-btn {
+            background: var(--surface);
+            border: none;
+            width: 26px;
+            height: 26px;
+            border-radius: 13px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 14px;
+            color: var(--text);
+            flex-shrink: 0;
+        }
+        .stats-row {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 10px;
+        }
+        .stat-chip {
+            background: var(--surface);
+            padding: 6px 10px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            flex: 1;
+            text-align: center;
+        }
+        .stat-chip .label {
+            font-size: 10px;
+            color: var(--text-secondary);
+            font-weight: 400;
+        }
+        .stat-chip .value {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--accent);
+        }
+        .comments-list {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            max-height: 100px;
+            overflow-y: auto;
+            margin-bottom: 10px;
+            padding-right: 4px;
+        }
+        .comment-item {
+            background: var(--comment-bg);
+            padding: 6px 10px;
+            border-radius: 8px;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .comment-badge {
+            padding: 2px 7px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+        .badge-fuel {
+            background: var(--badge-fuel-bg);
+            color: var(--badge-fuel-text);
+        }
+        .badge-no-fuel {
+            background: var(--badge-no-fuel-bg);
+            color: var(--badge-no-fuel-text);
+        }
+        .badge-queue {
+            background: var(--badge-queue-bg);
+            color: var(--badge-queue-text);
+        }
+        .comment-time {
+            margin-left: auto;
+            font-size: 10px;
+            color: var(--text-secondary);
+        }
+        .form-section {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .form-label {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .btn-row {
+            display: flex;
+            gap: 6px;
+        }
+        .btn {
+            flex: 1;
+            padding: 8px 6px;
+            border: 2px solid var(--btn-border);
+            border-radius: 8px;
+            background: var(--btn-bg);
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.15s;
+            text-align: center;
+            color: var(--text);
+        }
+        .btn.selected {
+            border-color: var(--btn-selected-border);
+            background: var(--btn-selected-bg);
+            color: var(--btn-selected-text);
+        }
+        .btn-submit {
+            width: 100%;
+            padding: 10px;
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 4px;
+            transition: opacity 0.2s;
+        }
+        .btn-submit:active { opacity: 0.8; }
+        .btn-submit:disabled { background: #8e8e93; cursor: not-allowed; opacity: 0.5; }
+
+        /* Адаптив */
+        @media (max-width: 380px) {
+            .header-left h1 { font-size: 15px; }
+            .filter-panel { padding: 6px; min-width: 110px; }
+            .filter-btn { font-size: 12px; padding: 6px 10px; }
+            .stat-chip .value { font-size: 16px; }
+            .btn { font-size: 12px; padding: 7px 4px; }
+        }
+        .comments-list::-webkit-scrollbar { width: 3px; }
+        .comments-list::-webkit-scrollbar-track { background: transparent; }
+        .comments-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+    </style>
+</head>
+<body>
+    <!-- Шапка -->
+    <div class="header">
+        <div class="header-left">
+            <h1>⛽ Бензин Астрахань</h1>
+            <div class="subtitle">Отмечайте наличие топлива и очереди</div>
+        </div>
+        <div class="header-right">
+            <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="Сменить тему">🌙</button>
+        </div>
+    </div>
+
+    <!-- Карта -->
+    <div id="map"></div>
+
+    <!-- Фильтр (слева сверху) -->
+    <div class="filter-panel" id="filterPanel">
+        <button class="filter-btn active" data-filter="all" onclick="setFilter('all', this)">
+            📍 Все АЗС <span class="filter-count" id="countAll">8</span>
+        </button>
+        <button class="filter-btn" data-filter="has_fuel" onclick="setFilter('has_fuel', this)">
+            <span class="filter-dot" style="background: #34c759;"></span> Есть бензин <span class="filter-count" id="countHasFuel">0</span>
+        </button>
+        <button class="filter-btn" data-filter="no_fuel" onclick="setFilter('no_fuel', this)">
+            <span class="filter-dot" style="background: #ff3b30;"></span> Нет бензина <span class="filter-count" id="countNoFuel">0</span>
+        </button>
+        <button class="filter-btn" data-filter="no_data" onclick="setFilter('no_data', this)">
+            <span class="filter-dot" style="background: #8e8e93;"></span> Нет данных <span class="filter-count" id="countNoData">0</span>
+        </button>
+    </div>
+
+    <!-- Легенда (справа вверху) -->
+    <div class="legend">
+        <div class="legend-item"><span class="legend-color" style="background:#34c759"></span> Есть</div>
+        <div class="legend-item"><span class="legend-color" style="background:#ff3b30"></span> Нет</div>
+        <div class="legend-item"><span class="legend-color" style="background:#ffcc00"></span> Устарело</div>
+        <div class="legend-item"><span class="legend-color" style="background:#8e8e93"></span> Нет данных</div>
+    </div>
+
+    <!-- Компактная панель отзыва -->
+    <div class="comment-panel" id="commentPanel">
+        <div class="panel-header">
+            <div>
+                <h3 id="stationName">АЗС</h3>
+                <div class="address" id="stationAddress"></div>
+            </div>
+            <button class="close-btn" onclick="closePanel()">✕</button>
+        </div>
+        <div class="stats-row">
+            <div class="stat-chip"><div class="label">Шанс бензина</div><div class="value" id="fuelChance">--%</div></div>
+            <div class="stat-chip"><div class="label">Очередь</div><div class="value" id="queueChance">--%</div></div>
+        </div>
+        <div class="comments-list" id="commentsList">
+            <div style="color: var(--text-secondary); text-align: center; font-size: 12px;">Нет комментариев</div>
+        </div>
+        <div class="form-section">
+            <div class="form-label">Бензин есть?</div>
+            <div class="btn-row" id="fuelBtns">
+                <div class="btn" data-value="yes" onclick="selectBtn(this, 'fuel')">✅ Есть</div>
+                <div class="btn" data-value="no" onclick="selectBtn(this, 'fuel')">❌ Нет</div>
+            </div>
+            <div id="queueGroup" style="display: none;">
+                <div class="form-label" style="margin-top: 4px;">Очередь?</div>
+                <div class="btn-row" id="queueBtns">
+                    <div class="btn" data-value="yes" onclick="selectBtn(this, 'queue')">🚗 Есть</div>
+                    <div class="btn" data-value="no" onclick="selectBtn(this, 'queue')">✅ Нет</div>
+                </div>
+            </div>
+        </div>
+        <button class="btn-submit" id="submitBtn" onclick="submitComment()">📝 Отправить</button>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        const STORAGE_KEY = 'astrakhan_fuel_data';
+        const THEME_KEY = 'astrakhan_fuel_theme';
+        const DEFAULT_STATIONS = [
+            { id: 1, name: "Лукойл №34", lat: 46.3497, lng: 48.0408, address: "ул. Адмиралтейская, 51" },
+            { id: 2, name: "Газпромнефть №112", lat: 46.3612, lng: 48.0563, address: "ул. Боевая, 124" },
+            { id: 3, name: "Роснефть АЗС-7", lat: 46.3382, lng: 48.0215, address: "ул. Савушкина, 6" },
+            { id: 4, name: "Татнефть АЗС", lat: 46.3715, lng: 48.0732, address: "ул. Магнитогорская, 80" },
+            { id: 5, name: "Лукойл №18", lat: 46.3328, lng: 48.0489, address: "ул. Николая Островского, 148" },
+            { id: 6, name: "Газпромнефть №55", lat: 46.3834, lng: 48.0887, address: "ул. Староверова, 45" },
+            { id: 7, name: "Shell АЗС", lat: 46.3542, lng: 48.0291, address: "ул. Кирова, 102" },
+            { id: 8, name: "Роснефть АЗС-2", lat: 46.3425, lng: 48.0777, address: "пр. Воробьева, 12" }
+        ];
+
+        function initData() {
+            let data = localStorage.getItem(STORAGE_KEY);
+            if (!data) {
+                const initial = {};
+                DEFAULT_STATIONS.forEach(s => { initial[s.id] = { ...s, comments: [] }; });
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(initial));
+                return initial;
+            }
+            return JSON.parse(data);
+        }
+        function saveData(data) { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); }
+
+        let stationsData = initData();
+        let selectedStationId = null;
+        let selectedFuel = null;
+        let selectedQueue = null;
+        let currentFilter = 'all';
+
+        // ==================== ТЕМА ====================
+        function initTheme() {
+            const saved = localStorage.getItem(THEME_KEY) || 'light';
+            document.documentElement.setAttribute('data-theme', saved);
+            updateThemeIcon(saved);
+        }
+        function toggleTheme() {
+            const current = document.documentElement.getAttribute('data-theme') || 'light';
+            const next = current === 'light' ? 'dark' : 'light';
+            document.documentElement.setAttribute('data-theme', next);
+            localStorage.setItem(THEME_KEY, next);
+            updateThemeIcon(next);
+            updateMapTiles(next);
+        }
+        function updateThemeIcon(theme) {
+            document.getElementById('themeToggle').textContent = theme === 'dark' ? '☀️' : '🌙';
+        }
+
+        // ==================== КАРТА ====================
+        let tileLayer;
+        function initMap() {
+            const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+            const tileUrl = currentTheme === 'dark' 
+                ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
+                : 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png';
+            tileLayer = L.tileLayer(tileUrl, { attribution: '© CartoDB', maxZoom: 19 }).addTo(map);
+        }
+        function updateMapTiles(theme) {
+            if (tileLayer) map.removeLayer(tileLayer);
+            const tileUrl = theme === 'dark'
+                ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
+                : 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png';
+            tileLayer = L.tileLayer(tileUrl, { attribution: '© CartoDB', maxZoom: 19 }).addTo(map);
+        }
+
+        const map = L.map('map', { center: [46.358, 48.045], zoom: 13, zoomControl: false });
+        L.control.zoom({ position: 'bottomleft' }).addTo(map);
+        initMap();
+        const markersLayer = L.layerGroup().addTo(map);
+
+        // ==================== ЛОГИКА ДАННЫХ ====================
+        function getFuelProbability(comments) {
+            if (comments.length === 0) return null;
+            const recent = comments.filter(c => (Date.now() - c.timestamp) < 4 * 60 * 60 * 1000);
+            const pool = recent.length > 0 ? recent : comments;
+            const yes = pool.filter(c => c.hasFuel).length;
+            return { probability: yes / pool.length, total: pool.length, hasFuel: yes > 0 };
+        }
+
+        function getQueueProbability(comments) {
+            const fuelComments = comments.filter(c => c.hasFuel);
+            if (fuelComments.length === 0) return null;
+            const withQueue = fuelComments.filter(c => c.hasQueue).length;
+            return { probability: withQueue / fuelComments.length, total: fuelComments.length };
+        }
+
+        function getStationStatus(stationId) {
+            const station = stationsData[stationId];
+            if (!station || station.comments.length === 0) return 'no_data';
+            const fuelProb = getFuelProbability(station.comments);
+            if (!fuelProb) return 'no_data';
+            const latestComment = station.comments.reduce((latest, c) => c.timestamp > latest.timestamp ? c : latest, { timestamp: 0 });
+            const hoursSinceUpdate = (Date.now() - latestComment.timestamp) / (60 * 60 * 1000);
+            if (hoursSinceUpdate > 2) return 'outdated';
+            return fuelProb.probability >= 0.5 ? 'has_fuel' : 'no_fuel';
+        }
+
+        function getMarkerColor(stationId) {
+            const status = getStationStatus(stationId);
+            const colorMap = {
+                'has_fuel': '#34c759',
+                'no_fuel': '#ff3b30',
+                'outdated': '#ffcc00',
+                'no_data': '#8e8e93'
+            };
+            return colorMap[status] || '#8e8e93';
+        }
+
+        function renderMarkers() {
+            markersLayer.clearLayers();
+            Object.values(stationsData).forEach(station => {
+                const status = getStationStatus(station.id);
+                // Фильтрация
+                if (currentFilter !== 'all' && currentFilter !== status) return;
+                const color = getMarkerColor(station.id);
+                const fuelProb = getFuelProbability(station.comments);
+                const queueProb = getQueueProbability(station.comments);
+                let popupContent = `<b>${station.name}</b><br>${station.address}<br>`;
+                if (fuelProb) {
+                    popupContent += `<br>⛽ Бензин: <b>${Math.round(fuelProb.probability * 100)}%</b> (${fuelProb.total} отзывов)`;
+                    if (queueProb) popupContent += `<br>🚗 Очередь: <b>${Math.round(queueProb.probability * 100)}%</b>`;
+                } else {
+                    popupContent += `<br><i>Нет данных</i>`;
+                }
+                popupContent += `<br><br><small>Нажмите для деталей</small>`;
+                const marker = L.circleMarker([station.lat, station.lng], {
+                    radius: 11, fillColor: color, color: '#ffffff', weight: 2, opacity: 1, fillOpacity: 0.9
+                }).bindPopup(popupContent);
+                marker.on('click', () => openStationPanel(station.id));
+                markersLayer.addLayer(marker);
+            });
+            updateFilterCounts();
+        }
+
+        // ==================== ФИЛЬТР ====================
+        function setFilter(filter, btn) {
+            currentFilter = filter;
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            renderMarkers();
+        }
+
+        function updateFilterCounts() {
+            let counts = { all: 0, has_fuel: 0, no_fuel: 0, no_data: 0 };
+            Object.keys(stationsData).forEach(id => {
+                counts.all++;
+                const status = getStationStatus(parseInt(id));
+                if (status === 'has_fuel') counts.has_fuel++;
+                else if (status === 'no_fuel') counts.no_fuel++;
+                else counts.no_data++;
+            });
+            document.getElementById('countAll').textContent = counts.all;
+            document.getElementById('countHasFuel').textContent = counts.has_fuel;
+            document.getElementById('countNoFuel').textContent = counts.no_fuel;
+            document.getElementById('countNoData').textContent = counts.no_data;
+        }
+
+        // ==================== ПАНЕЛЬ ОТЗЫВА ====================
+        function openStationPanel(stationId) {
+            selectedStationId = stationId;
+            const station = stationsData[stationId];
+            document.getElementById('stationName').textContent = station.name;
+            document.getElementById('stationAddress').textContent = station.address;
+            selectedFuel = null; selectedQueue = null;
+            document.querySelectorAll('#fuelBtns .btn').forEach(b => b.classList.remove('selected'));
+            document.querySelectorAll('#queueBtns .btn').forEach(b => b.classList.remove('selected'));
+            document.getElementById('queueGroup').style.display = 'none';
+            updateStats(); renderComments(); updateSubmitButton();
+            document.getElementById('commentPanel').classList.add('active');
+        }
+
+        function closePanel() {
+            document.getElementById('commentPanel').classList.remove('active');
+            selectedStationId = null; selectedFuel = null; selectedQueue = null;
+        }
+
+        function selectBtn(btn, type) {
+            const parent = btn.parentElement;
+            parent.querySelectorAll('.btn').forEach(b => b.classList.remove('selected'));
+            btn.classList.add('selected');
+            if (type === 'fuel') {
+                selectedFuel = btn.dataset.value;
+                document.getElementById('queueGroup').style.display = selectedFuel === 'yes' ? 'block' : 'none';
+                if (selectedFuel !== 'yes') {
+                    selectedQueue = null;
+                    document.querySelectorAll('#queueBtns .btn').forEach(b => b.classList.remove('selected'));
+                }
+            } else { selectedQueue = btn.dataset.value; }
+            updateSubmitButton();
+        }
+
+        function updateSubmitButton() { document.getElementById('submitBtn').disabled = !selectedFuel; }
+        function updateStats() {
+            if (!selectedStationId) return;
+            const station = stationsData[selectedStationId];
+            const fuelProb = getFuelProbability(station.comments);
+            const queueProb = getQueueProbability(station.comments);
+            document.getElementById('fuelChance').textContent = fuelProb ? Math.round(fuelProb.probability * 100) + '%' : '--%';
+            document.getElementById('queueChance').textContent = queueProb ? Math.round(queueProb.probability * 100) + '%' : '--%';
+        }
+        function renderComments() {
+            if (!selectedStationId) return;
+            const station = stationsData[selectedStationId];
+            const list = document.getElementById('commentsList');
+            if (station.comments.length === 0) {
+                list.innerHTML = '<div style="color: var(--text-secondary); text-align: center; font-size: 12px;">Нет комментариев</div>';
+                return;
+            }
+            const sorted = [...station.comments].sort((a, b) => b.timestamp - a.timestamp);
+            list.innerHTML = sorted.slice(0, 15).map(c => {
+                const time = new Date(c.timestamp).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+                const date = new Date(c.timestamp).toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' });
+                return `<div class="comment-item">
+                    <span class="comment-badge ${c.hasFuel ? 'badge-fuel' : 'badge-no-fuel'}">${c.hasFuel ? '✅' : '❌'}</span>
+                    ${c.hasFuel ? `<span class="comment-badge badge-queue">${c.hasQueue ? '🚗 Очередь' : '✅ Свободно'}</span>` : ''}
+                    <span class="comment-time">${date} ${time}</span>
+                </div>`;
+            }).join('');
+        }
+        function submitComment() {
+            if (!selectedStationId || !selectedFuel) return;
+            const comment = {
+                hasFuel: selectedFuel === 'yes',
+                hasQueue: selectedFuel === 'yes' ? selectedQueue === 'yes' : false,
+                timestamp: Date.now(),
+                userId: window.Telegram?.WebApp?.initDataUnsafe?.user?.id || 'anonymous'
+            };
+            stationsData[selectedStationId].comments.push(comment);
+            saveData(stationsData);
+            updateStats(); renderComments(); renderMarkers();
+            selectedFuel = null; selectedQueue = null;
+            document.querySelectorAll('#fuelBtns .btn').forEach(b => b.classList.remove('selected'));
+            document.querySelectorAll('#queueBtns .btn').forEach(b => b.classList.remove('selected'));
+            document.getElementById('queueGroup').style.display = 'none';
+            updateSubmitButton();
+            if (window.Telegram?.WebApp?.HapticFeedback) {
+                window.Telegram.WebApp.HapticFeedback.notificationOccurred('success');
+            }
+        }
+
+        // ==================== TELEGRAM MINI APP ====================
+        if (window.Telegram?.WebApp) {
+            const tg = window.Telegram.WebApp;
+            tg.ready(); tg.expand();
+            if (tg.themeParams.bg_color && !localStorage.getItem(THEME_KEY)) {
+                const isDark = !['#ffffff', '#fff'].includes(tg.themeParams.bg_color.toLowerCase());
+                if (isDark) {
+                    document.documentElement.setAttribute('data-theme', 'dark');
+                    updateThemeIcon('dark'); updateMapTiles('dark');
+                }
+            }
+        }
+
+        // ==================== СТАРТ ====================
+        initTheme();
+        updateSubmitButton();
+        renderMarkers();
+        setInterval(renderMarkers, 60000);
+    </script>
+</body>
+</html>
