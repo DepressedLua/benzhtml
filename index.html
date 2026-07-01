@@ -19,7 +19,6 @@
             --filter-bg: rgba(255,255,255,0.95);
             --shadow-sm: 0 1px 3px rgba(0,0,0,0.04); --shadow-md: 0 8px 32px rgba(0,0,0,0.1);
             --radius-sm: 10px; --radius-md: 16px; --radius-lg: 20px;
-            --marker-default: #8e8e93;
         }
         [data-theme="dark"] {
             --bg: #0d0d0f; --surface: #1c1c1e; --surface2: #2c2c2e;
@@ -32,7 +31,6 @@
             --badge-queue-bg: #3d3520; --badge-queue-text: #ffd60a;
             --comment-bg: #2c2c2e; --legend-bg: rgba(28,28,30,0.95);
             --filter-bg: rgba(28,28,30,0.95);
-            --marker-default: #636366;
         }
         * { margin: 0; padding: 0; box-sizing: border-box; }
         html, body {
@@ -75,7 +73,6 @@
             width: 100%; height: 100%; border: none;
             touch-action: manipulation !important;
         }
-        /* Увеличенные кнопки зума 2ГИС */
         .dg-zoom {
             border-radius: 14px !important;
             overflow: hidden !important;
@@ -96,9 +93,7 @@
             user-select: none !important;
         }
         .dg-zoom__in { border-bottom: 1px solid var(--border) !important; }
-        .dg-zoom__in:active, .dg-zoom__out:active {
-            background: var(--surface2) !important;
-        }
+        .dg-zoom__in:active, .dg-zoom__out:active { background: var(--surface2) !important; }
         .filter-panel {
             position: absolute; top: 10px; left: 10px;
             background: var(--filter-bg); padding: 5px; border-radius: var(--radius-md);
@@ -282,28 +277,20 @@
             DG.then(() => {
                 map = DG.map('map', {
                     center: [46.355, 48.045], zoom: 12,
-                    zoomControl: false,
-                    fullscreenControl: false,
-                    preferCanvas: true,
-                    geolocation: false,
-                    dragging: true,
-                    scrollWheelZoom: true,
-                    touchZoom: true,
-                    doubleClickZoom: true,
-                    tap: true,
-                    tapTolerance: 15
+                    zoomControl: false, fullscreenControl: false,
+                    preferCanvas: true, geolocation: false,
+                    dragging: true, scrollWheelZoom: true,
+                    touchZoom: true, doubleClickZoom: true,
+                    tap: true, tapTolerance: 15
                 });
-                
-                // Зум в ПРАВЫЙ НИЖНИЙ угол — удобно для большого пальца
                 DG.control.zoom({ position: 'bottomright' }).addTo(map);
-                
                 markersLayer = DG.featureGroup();
                 markersLayer.addTo(map);
                 loadCommentsFromServer().then(() => renderMarkers());
             });
         }
 
-        const STORAGE_KEY = 'astrakhan_fuel_data_v5';
+        const STORAGE_KEY = 'astrakhan_fuel_data_v6';
         const THEME_KEY = 'astrakhan_fuel_theme';
         const API_BASE = 'https://benztg-production.up.railway.app/api';
 
@@ -365,7 +352,6 @@
             { id:55, lat:46.387369, lng:48.100595, address:"Аэропортовское шоссе" }
         ];
 
-        // ==================== ОСТАЛЬНОЙ JS БЕЗ ИЗМЕНЕНИЙ ====================
         function initData() {
             let data = localStorage.getItem(STORAGE_KEY);
             if (!data) {
@@ -466,11 +452,12 @@
                 const st = getStatus(s.id);
                 if (currentFilter==='has_fuel' && st!=='has_fuel') return;
                 if (currentFilter==='no_fuel' && st!=='no_fuel') return;
-                if (currentFilter==='no_data' && st!=='no_data' && st!=='outdated') return;
+
                 const color = getColor(s.id);
                 const fp = getFuelProbability(s.comments);
                 const aq = getAvgQueue(s.comments);
                 const hasComments = s.comments.length > 0;
+                
                 const marker = DG.marker([s.lat, s.lng], {
                     icon: DG.icon({
                         iconUrl: createCircleIcon(color, hasComments ? 14 : 10),
@@ -478,11 +465,13 @@
                         iconAnchor: [hasComments ? 14 : 10, hasComments ? 14 : 10]
                     })
                 });
+                
                 let popup = `<b>${s.address}</b>`;
                 if (fp) popup += `<br><br>⛽ Бензин: <b>${Math.round(fp.probability*100)}%</b> (${fp.total} отз.)`;
                 else popup += `<br><br><i>Нет данных</i>`;
                 if (aq) popup += `<br>🚗 Очередь: ~<b>${aq.avg}</b> машин`;
                 popup += `<br><small>▶ Нажмите для деталей</small>`;
+                
                 marker.bindPopup(popup);
                 marker.on('click', () => openPanel(s.id));
                 markersLayer.addLayer(marker);
