@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Бензин Астрахань - 2ГИС</title>
+    <title>Бензин Астрахань</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root {
@@ -17,9 +17,9 @@
             --badge-queue-bg: #fff3cd; --badge-queue-text: #856404;
             --comment-bg: #f5f5f7; --legend-bg: rgba(255,255,255,0.95);
             --filter-bg: rgba(255,255,255,0.95);
-            --lukoil-color: #e31837; --gazprom-color: #005baa;
             --shadow-sm: 0 1px 3px rgba(0,0,0,0.04); --shadow-md: 0 8px 32px rgba(0,0,0,0.1);
             --radius-sm: 10px; --radius-md: 16px; --radius-lg: 20px;
+            --marker-default: #8e8e93;
         }
         [data-theme="dark"] {
             --bg: #0d0d0f; --surface: #1c1c1e; --surface2: #2c2c2e;
@@ -32,7 +32,7 @@
             --badge-queue-bg: #3d3520; --badge-queue-text: #ffd60a;
             --comment-bg: #2c2c2e; --legend-bg: rgba(28,28,30,0.95);
             --filter-bg: rgba(28,28,30,0.95);
-            --lukoil-color: #ff3b5c; --gazprom-color: #4da6ff;
+            --marker-default: #636366;
         }
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -47,12 +47,11 @@
             padding: 10px 16px; background: var(--surface);
             border-bottom: 1px solid var(--border); z-index: 2000; flex-shrink: 0;
             display: flex; align-items: center; justify-content: space-between; gap: 10px;
-            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
         }
         .header-left { display: flex; align-items: center; gap: 10px; }
         .header-logo { font-size: 24px; }
-        .header-text h1 { font-size: 15px; font-weight: 700; line-height: 1.2; letter-spacing: -0.2px; }
-        .header-text .subtitle { font-size: 10px; color: var(--text-secondary); font-weight: 500; }
+        .header-text h1 { font-size: 15px; font-weight: 700; }
+        .header-text .subtitle { font-size: 10px; color: var(--text-secondary); }
         .header-right { display: flex; align-items: center; gap: 6px; }
         .sync-dot { width: 7px; height: 7px; border-radius: 50%; background: #34c759; animation: pulse 2s infinite; }
         @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
@@ -64,26 +63,14 @@
             box-shadow: var(--shadow-sm);
         }
         .theme-btn:active { transform: scale(0.93); }
-
-        /* КОНТЕЙНЕР КАРТЫ */
-        #map-container {
-            flex: 1; width: 100%; position: relative; z-index: 1;
-        }
-        #map {
-            width: 100%; height: 100%; border: none;
-        }
-
-        /* ФИЛЬТРЫ ПОВЕРХ КАРТЫ */
-        .overlay-panel {
-            position: absolute; z-index: 1000; pointer-events: none;
-        }
-        .overlay-panel > * { pointer-events: auto; }
+        #map-container { flex: 1; width: 100%; position: relative; z-index: 1; }
+        #map { width: 100%; height: 100%; border: none; }
         .filter-panel {
             position: absolute; top: 10px; left: 10px;
             background: var(--filter-bg); padding: 5px; border-radius: var(--radius-md);
             box-shadow: var(--shadow-md); display: flex; flex-direction: column; gap: 1px;
             backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
-            border: 1px solid var(--border); min-width: 150px;
+            border: 1px solid var(--border); min-width: 150px; z-index: 1000;
         }
         .filter-title {
             font-size: 8px; text-transform: uppercase; color: var(--text-secondary);
@@ -103,18 +90,15 @@
             background: var(--surface2); padding: 1px 7px; border-radius: 9px; min-width: 20px; text-align: center;
         }
         .filter-btn.active .filter-count { background: rgba(255,255,255,0.2); }
-
         .legend {
             position: absolute; top: 10px; right: 10px;
             background: var(--legend-bg); padding: 7px 10px; border-radius: var(--radius-sm);
             font-size: 9px; box-shadow: var(--shadow-md); display: flex;
             flex-direction: column; gap: 3px; backdrop-filter: blur(24px);
-            -webkit-backdrop-filter: blur(24px); border: 1px solid var(--border);
+            -webkit-backdrop-filter: blur(24px); border: 1px solid var(--border); z-index: 1000;
         }
         .legend-item { display: flex; align-items: center; gap: 5px; font-weight: 500; }
         .legend-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
-
-        /* ПАНЕЛЬ ОТЗЫВА */
         .comment-panel {
             position: absolute; bottom: 16px; right: 12px; left: 12px;
             background: var(--panel-bg); border-radius: var(--radius-lg);
@@ -126,16 +110,7 @@
         .comment-panel.active { display: block; animation: slideUp 0.2s ease; }
         @keyframes slideUp { from { transform: translateY(15px); opacity: 0; } }
         .panel-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 8px; gap: 8px; }
-        .panel-info h3 { font-size: 13px; font-weight: 700; line-height: 1.3; }
-        .panel-info .addr { font-size: 10px; color: var(--text-secondary); margin-top: 1px; }
-        .network-tag {
-            display: inline-block; font-size: 9px; font-weight: 700; padding: 2px 7px;
-            border-radius: 10px; margin-top: 3px;
-        }
-        .tag-lukoil { background: #fde8ea; color: #c41230; }
-        .tag-gazprom { background: #e1edf7; color: #004a8f; }
-        [data-theme="dark"] .tag-lukoil { background: #3d1a1f; color: #ff6b7a; }
-        [data-theme="dark"] .tag-gazprom { background: #1a2d40; color: #5baeff; }
+        .panel-info h3 { font-size: 13px; font-weight: 700; }
         .close-btn {
             background: var(--surface2); border: none; width: 26px; height: 26px;
             border-radius: 13px; display: flex; align-items: center; justify-content: center;
@@ -183,7 +158,6 @@
             color: var(--text); outline: none; font-weight: 600; text-align: center;
         }
         .queue-input:focus { border-color: var(--accent); }
-        .queue-input::placeholder { color: var(--text-secondary); font-weight: 400; }
         .btn-submit {
             width: 100%; padding: 10px; background: var(--accent); color: #fff;
             border: none; border-radius: var(--radius-sm); font-size: 14px; font-weight: 700;
@@ -191,8 +165,6 @@
         }
         .btn-submit:active { opacity: 0.85; transform: scale(0.98); }
         .btn-submit:disabled { background: #a0a0a5; cursor: not-allowed; opacity: 0.5; }
-        .btn-submit:disabled:active { transform: none; }
-
         @media (max-width: 380px) {
             .header-text h1 { font-size: 14px; }
             .filter-panel { min-width: 135px; padding: 4px; }
@@ -211,7 +183,7 @@
             <span class="header-logo">⛽</span>
             <div class="header-text">
                 <h1>Бензин Астрахань</h1>
-                <div class="subtitle">23 АЗС • Лукойл + Газпромнефть</div>
+                <div class="subtitle">55 АЗС • Данные обновляются онлайн</div>
             </div>
         </div>
         <div class="header-right">
@@ -220,38 +192,25 @@
         </div>
     </div>
 
-    <!-- КАРТА -->
     <div id="map-container">
         <div id="map"></div>
         
-        <!-- ФИЛЬТРЫ -->
-        <div class="filter-panel" style="position:absolute;top:10px;left:10px;">
+        <div class="filter-panel">
             <div class="filter-title">🔍 Фильтр</div>
-            <button class="filter-btn active" data-filter="all" onclick="setFilter('all',this)">📍 Все <span class="filter-count" id="countAll">23</span></button>
+            <button class="filter-btn active" data-filter="all" onclick="setFilter('all',this)">📍 Все <span class="filter-count" id="countAll">55</span></button>
             <button class="filter-btn" data-filter="has_fuel" onclick="setFilter('has_fuel',this)"><span class="filter-dot" style="background:#34c759"></span> Есть бензин <span class="filter-count" id="countHasFuel">0</span></button>
             <button class="filter-btn" data-filter="no_fuel" onclick="setFilter('no_fuel',this)"><span class="filter-dot" style="background:#ff3b30"></span> Нет бензина <span class="filter-count" id="countNoFuel">0</span></button>
-            <button class="filter-btn" data-filter="no_data" onclick="setFilter('no_data',this)"><span class="filter-dot" style="background:#8e8e93"></span> Нет данных <span class="filter-count" id="countNoData">0</span></button>
-            <div class="filter-title">🏷 Сеть</div>
-            <button class="filter-btn" data-filter="lukoil" onclick="setFilter('lukoil',this)"><span class="filter-dot" style="background:var(--lukoil-color)"></span> Лукойл <span class="filter-count" id="countLukoil">7</span></button>
-            <button class="filter-btn" data-filter="gazprom" onclick="setFilter('gazprom',this)"><span class="filter-dot" style="background:var(--gazprom-color)"></span> Газпромнефть <span class="filter-count" id="countGazprom">16</span></button>
         </div>
 
-        <!-- ЛЕГЕНДА -->
-        <div class="legend" style="position:absolute;top:10px;right:10px;">
-            <div class="legend-item"><span class="legend-dot" style="background:var(--lukoil-color)"></span> Лукойл</div>
-            <div class="legend-item"><span class="legend-dot" style="background:var(--gazprom-color)"></span> Газпромнефть</div>
-            <div class="legend-item"><span class="legend-dot" style="background:#34c759"></span> Есть</div>
-            <div class="legend-item"><span class="legend-dot" style="background:#ff3b30"></span> Нет</div>
+        <div class="legend">
+            <div class="legend-item"><span class="legend-dot" style="background:#34c759"></span> Бензин есть</div>
+            <div class="legend-item"><span class="legend-dot" style="background:#ff3b30"></span> Бензина нет</div>
+            <div class="legend-item"><span class="legend-dot" style="background:#8e8e93"></span> Нет данных</div>
         </div>
 
-        <!-- ПАНЕЛЬ ОТЗЫВА -->
-        <div class="comment-panel" id="commentPanel" style="position:absolute;bottom:16px;right:12px;left:12px;">
+        <div class="comment-panel" id="commentPanel">
             <div class="panel-header">
-                <div class="panel-info">
-                    <h3 id="stationName">АЗС</h3>
-                    <div class="addr" id="stationAddress"></div>
-                    <span class="network-tag" id="networkTag"></span>
-                </div>
+                <div class="panel-info"><h3 id="stationName">АЗС</h3></div>
                 <button class="close-btn" onclick="closePanel()">✕</button>
             </div>
             <div class="stats-row">
@@ -281,99 +240,85 @@
         </div>
     </div>
 
-    <!-- 2GIS API -->
     <script src="https://maps.api.2gis.ru/2.0/loader.js?pkg=full"></script>
     <script>
-        // ==================== 2GIS КАРТА ====================
         let map, markersLayer;
         
         function init2GIS() {
             DG.then(() => {
                 map = DG.map('map', {
-                    center: [46.355, 48.045],
-                    zoom: 12,
-                    zoomControl: false,
-                    fullscreenControl: false,
-                    // Стиль как Google Maps
-                    preferCanvas: true,
-                    geolocation: false
+                    center: [46.355, 48.045], zoom: 12,
+                    zoomControl: false, fullscreenControl: false,
+                    preferCanvas: true, geolocation: false
                 });
-                
-                // Зум в левый нижний угол
                 DG.control.zoom({ position: 'bottomleft' }).addTo(map);
-                
-                // Группа для маркеров
                 markersLayer = DG.featureGroup();
                 markersLayer.addTo(map);
-                
-                // Загружаем маркеры
                 loadCommentsFromServer().then(() => renderMarkers());
             });
         }
 
-        // ==================== ДАННЫЕ ====================
-        const STORAGE_KEY = 'astrakhan_fuel_data_v4';
+        const STORAGE_KEY = 'astrakhan_fuel_data_v5';
         const THEME_KEY = 'astrakhan_fuel_theme';
-        const API_BASE = 'https://your-railway-app.up.railway.app/api';
+        const API_BASE = 'benztg-production.up.railway.app';
 
         const DEFAULT_STATIONS = [
-    // Все 55 АЗС Астрахани из 2ГИС
-    { id:1, network:"lukoil", name:"Лукойл", lat:46.337949, lng:48.041479, address:"ул. Адмирала Нахимова, 269Г", orient:"Юг города, выезд на Нариманов" },
-    { id:2, network:"lukoil", name:"Лукойл", lat:46.335345, lng:48.057393, address:"Аэропортовское шоссе, 5", orient:"Развилка на Аэропорт" },
-    { id:3, network:"lukoil", name:"Лукойл", lat:46.318666, lng:48.039550, address:"ул. Н. Островского, 135", orient:"Мкр. Бабаевского" },
-    { id:4, network:"lukoil", name:"Лукойл", lat:46.339393, lng:48.021766, address:"ул. Н. Островского, 148", orient:"Район Больших Исад" },
-    { id:5, network:"lukoil", name:"Лукойл", lat:46.337760, lng:48.064008, address:"ул. Яблочкова, 1В", orient:"ТРЦ Три Кота" },
-    { id:6, network:"lukoil", name:"Лукойл", lat:46.316528, lng:48.043385, address:"ул. Рыбинская, 3Б", orient:"Пос. Свободный" },
-    { id:7, network:"lukoil", name:"Лукойл", lat:46.293659, lng:47.998928, address:"ул. Дзержинского, 167А", orient:"Трусовская сторона" },
-    { id:8, network:"gazprom", name:"Газпромнефть", lat:46.301697, lng:48.010770, address:"ул. Чкалова, 143", orient:"Юг Трусовского" },
-    { id:9, network:"gazprom", name:"Газпромнефть", lat:46.361533, lng:48.055770, address:"ул. Пирогова, 179", orient:"Мкр. АЦКК" },
-    { id:10, network:"gazprom", name:"Газпромнефть", lat:46.341199, lng:47.987743, address:"ул. Керченская, 61", orient:"Центр Трусовского" },
-    { id:11, network:"gazprom", name:"Газпромнефть", lat:46.333201, lng:48.066452, address:"ул. Магистральная, 29", orient:"Въезд на Новый мост" },
-    { id:12, network:"gazprom", name:"Газпромнефть", lat:46.316267, lng:48.036899, address:"ул. Ахшарумова, 90Б", orient:"Медицинская академия" },
-    { id:13, network:"gazprom", name:"Газпромнефть", lat:46.344947, lng:47.983260, address:"ул. Боевая, 126", orient:"Славянский мост" },
-    { id:14, network:"gazprom", name:"Газпромнефть", lat:46.301592, lng:48.012474, address:"Аэропортовское шоссе, 13", orient:"Выезд к аэропорту" },
-    { id:15, network:"gazprom", name:"Газпромнефть", lat:46.358876, lng:48.055047, address:"ул. Рождественского, 2А", orient:"Южная промзона" },
-    { id:16, network:"gazprom", name:"Газпромнефть", lat:46.347117, lng:48.080026, address:"ул. Анри Барбюса, 34", orient:"Съезд с Нового моста" },
-    { id:17, network:"gazprom", name:"Газпромнефть", lat:46.359850, lng:48.063500, address:"ул. Вокзальная, 10", orient:"Ж/д вокзал" },
-    { id:18, network:"gazprom", name:"Газпромнефть", lat:46.334814, lng:47.978805, address:"ул. Славянская, 1Д", orient:"Кировский район" },
-    { id:19, network:"gazprom", name:"Газпромнефть", lat:46.344166, lng:47.985158, address:"ул. Автозаправочная, 8", orient:"Север города" },
-    { id:20, network:"gazprom", name:"Газпромнефть", lat:46.302741, lng:48.047206, address:"Началовское шоссе, 11В", orient:"Кулаковский промузел" },
-    { id:21, network:"gazprom", name:"Газпромнефть", lat:46.334203, lng:47.979685, address:"Началовское шоссе, 32", orient:"Пос. Три Протока" },
-    { id:22, network:"gazprom", name:"Газпромнефть", lat:46.350226, lng:48.092899, address:"ул. Ленина, 1А", orient:"Новоначаловский" },
-    { id:23, network:"gazprom", name:"Газпромнефть", lat:46.327230, lng:48.076807, address:"ул. Ленина, 45", orient:"Трасса на Началово" },
-    { id:24, network:"other", name:"Роснефть", lat:46.372468, lng:48.082896, address:"Аэропортовское шоссе", orient:"Рядом с аэропортом" },
-    { id:25, network:"other", name:"Роснефть", lat:46.276617, lng:47.969929, address:"ул. Чкалова", orient:"Юг Трусовского" },
-    { id:26, network:"other", name:"Роснефть", lat:46.361560, lng:48.073715, address:"ул. Боевая", orient:"Восточный район" },
-    { id:27, network:"other", name:"Роснефть", lat:46.357866, lng:48.095866, address:"Началовское шоссе", orient:"Выезд на восток" },
-    { id:28, network:"other", name:"Татнефть", lat:46.379639, lng:48.057549, address:"ул. Яблочкова", orient:"Северный район" },
-    { id:29, network:"other", name:"Татнефть", lat:46.305851, lng:47.953204, address:"ул. Керченская", orient:"Запад Трусовского" },
-    { id:30, network:"other", name:"Татнефть", lat:46.347583, lng:48.080794, address:"ул. Анри Барбюса", orient:"Рядом с Газпромнефть" },
-    { id:31, network:"other", name:"Shell", lat:46.323739, lng:48.028377, address:"ул. Н. Островского", orient:"Район Бабаевского" },
-    { id:32, network:"other", name:"Shell", lat:46.331145, lng:48.070798, address:"ул. Боевая", orient:"Восточнее центра" },
-    { id:33, network:"other", name:"Астраханская АЗС", lat:46.317729, lng:48.001026, address:"ул. Дзержинского", orient:"Трусовская сторона" },
-    { id:34, network:"other", name:"Астраханская АЗС", lat:46.342801, lng:47.983919, address:"ул. Керченская", orient:"Запад" },
-    { id:35, network:"other", name:"Нефтепродукт", lat:46.368612, lng:48.008951, address:"ул. Магистральная", orient:"Новый мост" },
-    { id:36, network:"other", name:"Нефтепродукт", lat:46.291304, lng:47.998843, address:"ул. Чкалова", orient:"Юг" },
-    { id:37, network:"other", name:"АЗС №1", lat:46.368099, lng:47.991583, address:"ул. Дзержинского", orient:"Левый берег" },
-    { id:38, network:"other", name:"АЗС №5", lat:46.291613, lng:48.052991, address:"ул. Адм. Нахимова", orient:"Южный выезд" },
-    { id:39, network:"other", name:"АЗС «Волга»", lat:46.390338, lng:47.999808, address:"ул. Яблочкова", orient:"Северный выезд" },
-    { id:40, network:"other", name:"АЗС «Волга»", lat:46.382375, lng:48.002998, address:"ул. Рыбинская", orient:"Пос. Свободный" },
-    { id:41, network:"other", name:"АЗС «Каспий»", lat:46.384641, lng:48.004359, address:"ул. Рыбинская", orient:"Рядом с Волгой" },
-    { id:42, network:"other", name:"АЗС «Каспий»", lat:46.342798, lng:48.118718, address:"Началовское шоссе", orient:"Дальний восток" },
-    { id:43, network:"other", name:"АЗС «Дельта»", lat:46.360813, lng:48.096719, address:"ул. Ленина", orient:"Новоначаловский" },
-    { id:44, network:"other", name:"АЗС «Дельта»", lat:46.357825, lng:48.095799, address:"ул. Ленина", orient:"Рядом с Роснефтью" },
-    { id:45, network:"other", name:"АЗС «Формула»", lat:46.288427, lng:47.972630, address:"ул. Пирогова", orient:"Мостострой" },
-    { id:46, network:"other", name:"АЗС «Формула»", lat:46.345909, lng:47.982547, address:"ул. Керченская", orient:"Западный район" },
-    { id:47, network:"other", name:"АЗС «Олимп»", lat:46.287851, lng:47.972305, address:"ул. Пирогова", orient:"Рядом с Формулой" },
-    { id:48, network:"other", name:"АЗС «Олимп»", lat:46.274458, lng:47.971886, address:"ул. Чкалова", orient:"Крайний юг" },
-    { id:49, network:"other", name:"АЗС «Старт»", lat:46.304769, lng:47.952207, address:"ул. Керченская", orient:"Западная окраина" },
-    { id:50, network:"other", name:"АЗС «Старт»", lat:46.347999, lng:48.091857, address:"Началовское шоссе", orient:"Промзона" },
-    { id:51, network:"other", name:"АЗС «Вектор»", lat:46.383345, lng:48.092816, address:"ул. Ленина", orient:"Северо-восток" },
-    { id:52, network:"other", name:"АЗС «Вектор»", lat:46.327749, lng:48.104688, address:"Началовское шоссе", orient:"Выезд из города" },
-    { id:53, network:"other", name:"АЗС «Трасса»", lat:46.346448, lng:48.109902, address:"Началовское шоссе", orient:"Трасса на восток" },
-    { id:54, network:"other", name:"АЗС «Трасса»", lat:46.273419, lng:47.975994, address:"ул. Чкалова", orient:"Южная окраина" },
-    { id:55, network:"other", name:"АЗС «Энергия»", lat:46.387369, lng:48.100595, address:"Аэропортовское шоссе", orient:"Севернее аэропорта" }
-];
+            { id:1, lat:46.337949, lng:48.041479, address:"ул. Адмирала Нахимова, 269Г" },
+            { id:2, lat:46.335345, lng:48.057393, address:"Аэропортовское шоссе, 5" },
+            { id:3, lat:46.318666, lng:48.039550, address:"ул. Н. Островского, 135" },
+            { id:4, lat:46.339393, lng:48.021766, address:"ул. Н. Островского, 148" },
+            { id:5, lat:46.337760, lng:48.064008, address:"ул. Яблочкова, 1В" },
+            { id:6, lat:46.316528, lng:48.043385, address:"ул. Рыбинская, 3Б" },
+            { id:7, lat:46.293659, lng:47.998928, address:"ул. Дзержинского, 167А" },
+            { id:8, lat:46.301697, lng:48.010770, address:"ул. Чкалова, 143" },
+            { id:9, lat:46.361533, lng:48.055770, address:"ул. Пирогова, 179" },
+            { id:10, lat:46.341199, lng:47.987743, address:"ул. Керченская, 61" },
+            { id:11, lat:46.333201, lng:48.066452, address:"ул. Магистральная, 29" },
+            { id:12, lat:46.316267, lng:48.036899, address:"ул. Ахшарумова, 90Б" },
+            { id:13, lat:46.344947, lng:47.983260, address:"ул. Боевая, 126" },
+            { id:14, lat:46.301592, lng:48.012474, address:"Аэропортовское шоссе, 13" },
+            { id:15, lat:46.358876, lng:48.055047, address:"ул. Рождественского, 2А" },
+            { id:16, lat:46.347117, lng:48.080026, address:"ул. Анри Барбюса, 34" },
+            { id:17, lat:46.359850, lng:48.063500, address:"ул. Вокзальная, 10" },
+            { id:18, lat:46.334814, lng:47.978805, address:"ул. Славянская, 1Д" },
+            { id:19, lat:46.344166, lng:47.985158, address:"ул. Автозаправочная, 8" },
+            { id:20, lat:46.302741, lng:48.047206, address:"Началовское шоссе, 11В" },
+            { id:21, lat:46.334203, lng:47.979685, address:"Началовское шоссе, 32" },
+            { id:22, lat:46.350226, lng:48.092899, address:"ул. Ленина, 1А" },
+            { id:23, lat:46.327230, lng:48.076807, address:"ул. Ленина, 45" },
+            { id:24, lat:46.372468, lng:48.082896, address:"Аэропортовское шоссе" },
+            { id:25, lat:46.276617, lng:47.969929, address:"ул. Чкалова" },
+            { id:26, lat:46.361560, lng:48.073715, address:"ул. Боевая" },
+            { id:27, lat:46.357866, lng:48.095866, address:"Началовское шоссе" },
+            { id:28, lat:46.379639, lng:48.057549, address:"ул. Яблочкова" },
+            { id:29, lat:46.305851, lng:47.953204, address:"ул. Керченская" },
+            { id:30, lat:46.347583, lng:48.080794, address:"ул. Анри Барбюса" },
+            { id:31, lat:46.323739, lng:48.028377, address:"ул. Н. Островского" },
+            { id:32, lat:46.331145, lng:48.070798, address:"ул. Боевая" },
+            { id:33, lat:46.317729, lng:48.001026, address:"ул. Дзержинского" },
+            { id:34, lat:46.342801, lng:47.983919, address:"ул. Керченская" },
+            { id:35, lat:46.368612, lng:48.008951, address:"ул. Магистральная" },
+            { id:36, lat:46.291304, lng:47.998843, address:"ул. Чкалова" },
+            { id:37, lat:46.368099, lng:47.991583, address:"ул. Дзержинского" },
+            { id:38, lat:46.291613, lng:48.052991, address:"ул. Адм. Нахимова" },
+            { id:39, lat:46.390338, lng:47.999808, address:"ул. Яблочкова" },
+            { id:40, lat:46.382375, lng:48.002998, address:"ул. Рыбинская" },
+            { id:41, lat:46.384641, lng:48.004359, address:"ул. Рыбинская" },
+            { id:42, lat:46.342798, lng:48.118718, address:"Началовское шоссе" },
+            { id:43, lat:46.360813, lng:48.096719, address:"ул. Ленина" },
+            { id:44, lat:46.357825, lng:48.095799, address:"ул. Ленина" },
+            { id:45, lat:46.288427, lng:47.972630, address:"ул. Пирогова" },
+            { id:46, lat:46.345909, lng:47.982547, address:"ул. Керченская" },
+            { id:47, lat:46.287851, lng:47.972305, address:"ул. Пирогова" },
+            { id:48, lat:46.274458, lng:47.971886, address:"ул. Чкалова" },
+            { id:49, lat:46.304769, lng:47.952207, address:"ул. Керченская" },
+            { id:50, lat:46.347999, lng:48.091857, address:"Началовское шоссе" },
+            { id:51, lat:46.383345, lng:48.092816, address:"ул. Ленина" },
+            { id:52, lat:46.327749, lng:48.104688, address:"Началовское шоссе" },
+            { id:53, lat:46.346448, lng:48.109902, address:"Началовское шоссе" },
+            { id:54, lat:46.273419, lng:47.975994, address:"ул. Чкалова" },
+            { id:55, lat:46.387369, lng:48.100595, address:"Аэропортовское шоссе" }
+        ];
 
         function initData() {
             let data = localStorage.getItem(STORAGE_KEY);
@@ -386,7 +331,7 @@
             const saved = JSON.parse(data);
             DEFAULT_STATIONS.forEach(s => {
                 if (!saved[s.id]) saved[s.id] = {...s, comments:[]};
-                else Object.assign(saved[s.id], s);
+                else { saved[s.id].lat = s.lat; saved[s.id].lng = s.lng; saved[s.id].address = s.address; }
             });
             localStorage.setItem(STORAGE_KEY, JSON.stringify(saved));
             return saved;
@@ -396,7 +341,6 @@
         let stationsData = initData();
         let selectedStationId = null, selectedFuel = null, selectedQueue = null, currentFilter = 'all';
 
-        // ==================== СИНХРОНИЗАЦИЯ ====================
         async function loadCommentsFromServer() {
             try {
                 const r = await fetch(`${API_BASE}/comments`);
@@ -426,7 +370,6 @@
             } catch { return false; }
         }
 
-        // ==================== ТЕМА ====================
         function initTheme() {
             const s = localStorage.getItem(THEME_KEY) || 'light';
             document.documentElement.setAttribute('data-theme', s);
@@ -440,7 +383,6 @@
             document.getElementById('themeToggle').textContent = n === 'dark' ? '☀️' : '🌙';
         }
 
-        // ==================== МАРКЕРЫ НА 2ГИС ====================
         function getFuelProbability(c) {
             if (!c.length) return null;
             const recent = c.filter(x => (Date.now() - x.timestamp) < 4*3600000);
@@ -464,33 +406,27 @@
             return fp.probability >= 0.5 ? 'has_fuel' : 'no_fuel';
         }
         function getColor(sid) {
-            const s = stationsData[sid];
-            if (!s || !s.comments.length) return s?.network==='lukoil'?'#e31837':'#005baa';
             const st = getStatus(sid);
             if (st==='has_fuel') return '#34c759';
             if (st==='no_fuel') return '#ff3b30';
             if (st==='outdated') return '#ffcc00';
-            return s?.network==='lukoil'?'#e31837':'#005baa';
+            return '#8e8e93';
         }
 
         function renderMarkers() {
             if (!markersLayer) return;
             markersLayer.clearLayers();
-            
             Object.values(stationsData).forEach(s => {
                 const st = getStatus(s.id);
                 if (currentFilter==='has_fuel' && st!=='has_fuel') return;
                 if (currentFilter==='no_fuel' && st!=='no_fuel') return;
                 if (currentFilter==='no_data' && st!=='no_data' && st!=='outdated') return;
-                if (currentFilter==='lukoil' && s.network!=='lukoil') return;
-                if (currentFilter==='gazprom' && s.network!=='gazprom') return;
 
                 const color = getColor(s.id);
                 const fp = getFuelProbability(s.comments);
                 const aq = getAvgQueue(s.comments);
                 const hasComments = s.comments.length > 0;
                 
-                // Круглый маркер 2ГИС
                 const marker = DG.marker([s.lat, s.lng], {
                     icon: DG.icon({
                         iconUrl: createCircleIcon(color, hasComments ? 14 : 10),
@@ -499,7 +435,7 @@
                     })
                 });
                 
-                let popup = `<b>${s.name}</b><br>${s.address}<br><small>${s.orient||''}</small>`;
+                let popup = `<b>${s.address}</b>`;
                 if (fp) popup += `<br><br>⛽ Бензин: <b>${Math.round(fp.probability*100)}%</b> (${fp.total} отз.)`;
                 else popup += `<br><br><i>Нет данных</i>`;
                 if (aq) popup += `<br>🚗 Очередь: ~<b>${aq.avg}</b> машин`;
@@ -513,7 +449,6 @@
         }
 
         function createCircleIcon(color, radius) {
-            // SVG кружок для 2ГИС
             const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${radius*2}" height="${radius*2}">
                 <circle cx="${radius}" cy="${radius}" r="${radius-1}" fill="${color}" stroke="#fff" stroke-width="2"/>
             </svg>`;
@@ -527,25 +462,20 @@
             renderMarkers();
         }
         function updateCounts() {
-            let c = {all:0, has_fuel:0, no_fuel:0, no_data:0, lukoil:0, gazprom:0};
+            let c = {all:0, has_fuel:0, no_fuel:0};
             Object.values(stationsData).forEach(s => {
-                c.all++; if(s.network==='lukoil')c.lukoil++; if(s.network==='gazprom')c.gazprom++;
+                c.all++;
                 const st = getStatus(s.id);
-                if(st==='has_fuel')c.has_fuel++; else if(st==='no_fuel')c.no_fuel++; else c.no_data++;
+                if(st==='has_fuel')c.has_fuel++; else if(st==='no_fuel')c.no_fuel++;
             });
-            ['All','HasFuel','NoFuel','NoData','Lukoil','Gazprom'].forEach(k => {
-                const el = document.getElementById('count'+k); if(el) el.textContent = c[k.toLowerCase()];
-            });
+            document.getElementById('countAll').textContent = c.all;
+            document.getElementById('countHasFuel').textContent = c.has_fuel;
+            document.getElementById('countNoFuel').textContent = c.no_fuel;
         }
 
-        // ==================== ПАНЕЛЬ ====================
         function openPanel(sid) {
-            selectedStationId = sid; const s = stationsData[sid];
-            document.getElementById('stationName').textContent = s.name;
-            document.getElementById('stationAddress').textContent = s.address + ' • ' + (s.orient||'');
-            const tag = document.getElementById('networkTag');
-            tag.textContent = s.network==='lukoil'?'Лукойл':'Газпромнефть';
-            tag.className = 'network-tag ' + (s.network==='lukoil'?'tag-lukoil':'tag-gazprom');
+            selectedStationId = sid;
+            document.getElementById('stationName').textContent = stationsData[sid].address;
             resetForm(); updateStats(); renderComments(); updateSubmit();
             document.getElementById('commentPanel').classList.add('active');
         }
@@ -612,13 +542,9 @@
             saveData(stationsData);
             const synced = await submitToServer(selectedStationId, comment);
             updateStats(); renderComments(); renderMarkers(); resetForm(); updateSubmit();
-            if (window.Telegram?.WebApp?.HapticFeedback) {
-                window.Telegram.WebApp.HapticFeedback.notificationOccurred(synced?'success':'warning');
-            }
             if (synced) setTimeout(loadCommentsFromServer, 1500);
         }
 
-        // ==================== TELEGRAM ====================
         if (window.Telegram?.WebApp) {
             const tg = window.Telegram.WebApp; tg.ready(); tg.expand();
             if (tg.themeParams.bg_color && !localStorage.getItem(THEME_KEY)) {
@@ -629,7 +555,6 @@
             }
         }
 
-        // ==================== СТАРТ ====================
         initTheme();
         init2GIS();
         setInterval(loadCommentsFromServer, 30000);
