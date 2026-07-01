@@ -290,7 +290,7 @@
             });
         }
 
-        const STORAGE_KEY = 'astrakhan_fuel_data_v6';
+        const STORAGE_KEY = 'astrakhan_fuel_data_v7';
         const THEME_KEY = 'astrakhan_fuel_theme';
         const API_BASE = 'https://benztg-production.up.railway.app/api';
 
@@ -375,7 +375,7 @@
 
         async function loadCommentsFromServer() {
             try {
-                const r = await fetch(`${API_BASE}/comments`);
+                const r = await fetch(`${API_BASE}/comments`, { mode: 'cors' });
                 if (!r.ok) throw new Error('Network');
                 const server = await r.json();
                 Object.entries(server).forEach(([sid, comments]) => {
@@ -388,14 +388,17 @@
                 });
                 saveData(stationsData);
                 document.getElementById('syncDot').style.background = '#34c759';
-            } catch {
+            } catch(e) {
+                console.log('Оффлайн:', e);
                 document.getElementById('syncDot').style.background = '#ff9500';
             }
         }
         async function submitToServer(sid, comment) {
             try {
                 await fetch(`${API_BASE}/comments`, {
-                    method: 'POST', headers: {'Content-Type':'application/json'},
+                    method: 'POST',
+                    mode: 'cors',
+                    headers: {'Content-Type':'application/json'},
                     body: JSON.stringify({station_id:sid, comment})
                 });
                 return true;
