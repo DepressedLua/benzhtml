@@ -19,6 +19,7 @@
             --filter-bg: rgba(255,255,255,0.95);
             --shadow-sm: 0 1px 3px rgba(0,0,0,0.04); --shadow-md: 0 8px 32px rgba(0,0,0,0.1);
             --radius-sm: 10px; --radius-md: 16px; --radius-lg: 20px;
+            --fuel-92: #34c759; --fuel-95: #ff9500; --fuel-100: #ff3b30; --fuel-dt: #007aff;
         }
         [data-theme="dark"] {
             --bg: #0d0d0f; --surface: #1c1c1e; --surface2: #2c2c2e;
@@ -31,6 +32,7 @@
             --badge-queue-bg: #3d3520; --badge-queue-text: #ffd60a;
             --comment-bg: #2c2c2e; --legend-bg: rgba(28,28,30,0.95);
             --filter-bg: rgba(28,28,30,0.95);
+            --fuel-92: #30d158; --fuel-95: #ff9f0a; --fuel-100: #ff453a; --fuel-dt: #0a84ff;
         }
         * { margin: 0; padding: 0; box-sizing: border-box; }
         html, body {
@@ -69,38 +71,37 @@
         }
         .theme-btn:active { transform: scale(0.93); }
         #map-container { flex: 1; width: 100%; position: relative; z-index: 1; overflow: hidden; }
-        #map {
-            width: 100%; height: 100%; border: none;
-            touch-action: manipulation !important;
-        }
-        .dg-zoom {
-            border-radius: 14px !important;
-            overflow: hidden !important;
-            box-shadow: 0 2px 12px rgba(0,0,0,0.15) !important;
-        }
+        #map { width: 100%; height: 100%; border: none; touch-action: manipulation !important; }
+        .dg-zoom { border-radius: 14px !important; overflow: hidden !important; box-shadow: 0 2px 12px rgba(0,0,0,0.15) !important; }
         .dg-zoom__in, .dg-zoom__out {
-            width: 48px !important;
-            height: 48px !important;
-            line-height: 48px !important;
-            font-size: 26px !important;
-            font-weight: 300 !important;
-            background: var(--surface) !important;
-            color: var(--text) !important;
-            border: 1px solid var(--border) !important;
-            text-align: center !important;
-            cursor: pointer !important;
-            -webkit-tap-highlight-color: transparent !important;
-            user-select: none !important;
+            width: 48px !important; height: 48px !important; line-height: 48px !important;
+            font-size: 26px !important; font-weight: 300 !important;
+            background: var(--surface) !important; color: var(--text) !important;
+            border: 1px solid var(--border) !important; text-align: center !important;
+            cursor: pointer !important; user-select: none !important;
         }
-        .dg-zoom__in { border-bottom: 1px solid var(--border) !important; }
         .dg-zoom__in:active, .dg-zoom__out:active { background: var(--surface2) !important; }
-        .filter-panel {
-            position: absolute; top: 10px; left: 10px;
-            background: var(--filter-bg); padding: 5px; border-radius: var(--radius-md);
-            box-shadow: var(--shadow-md); display: flex; flex-direction: column; gap: 1px;
+
+        /* Фильтр */
+        .filter-wrapper {
+            position: absolute; top: 10px; left: 10px; z-index: 1000;
+            background: var(--filter-bg); border-radius: var(--radius-md);
+            box-shadow: var(--shadow-md); border: 1px solid var(--border);
             backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
-            border: 1px solid var(--border); min-width: 150px; z-index: 1000;
+            min-width: 155px; transition: all 0.3s;
         }
+        .filter-wrapper.collapsed .filter-content { display: none; }
+        .filter-wrapper.collapsed { min-width: auto; }
+        .filter-toggle {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 8px 10px; cursor: pointer; font-size: 12px; font-weight: 700;
+            color: var(--text); gap: 6px;
+        }
+        .filter-toggle .arrow {
+            transition: transform 0.3s; font-size: 10px;
+        }
+        .filter-wrapper.collapsed .arrow { transform: rotate(-90deg); }
+        .filter-content { padding: 0 5px 5px; }
         .filter-title {
             font-size: 8px; text-transform: uppercase; color: var(--text-secondary);
             padding: 5px 10px 2px; letter-spacing: 1.5px; font-weight: 700;
@@ -119,6 +120,8 @@
             background: var(--surface2); padding: 1px 7px; border-radius: 9px; min-width: 20px; text-align: center;
         }
         .filter-btn.active .filter-count { background: rgba(255,255,255,0.2); }
+
+        /* Легенда */
         .legend {
             position: absolute; top: 10px; right: 10px;
             background: var(--legend-bg); padding: 7px 10px; border-radius: var(--radius-sm);
@@ -128,6 +131,8 @@
         }
         .legend-item { display: flex; align-items: center; gap: 5px; font-weight: 500; }
         .legend-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+        /* Панель */
         .comment-panel {
             position: absolute; bottom: 90px; right: 12px; left: 12px;
             background: var(--panel-bg); border-radius: var(--radius-lg);
@@ -146,13 +151,13 @@
             cursor: pointer; font-size: 13px; color: var(--text); flex-shrink: 0;
         }
         .close-btn:active { background: var(--border); }
-        .stats-row { display: flex; gap: 6px; margin-bottom: 8px; }
+        .stats-row { display: flex; gap: 6px; margin-bottom: 8px; flex-wrap: wrap; }
         .stat-chip {
             background: var(--surface2); padding: 7px 10px; border-radius: var(--radius-sm);
-            font-size: 11px; font-weight: 600; flex: 1; text-align: center;
+            font-size: 11px; font-weight: 600; flex: 1; text-align: center; min-width: 60px;
         }
         .stat-chip .label { font-size: 9px; color: var(--text-secondary); font-weight: 500; }
-        .stat-chip .value { font-size: 18px; font-weight: 700; color: var(--accent); line-height: 1.1; }
+        .stat-chip .value { font-size: 16px; font-weight: 700; color: var(--accent); line-height: 1.1; }
         .comments-list {
             display: flex; flex-direction: column; gap: 4px;
             max-height: 100px; overflow-y: auto; margin-bottom: 8px; padding-right: 2px;
@@ -166,16 +171,24 @@
         .badge-nofuel { background: var(--badge-no-fuel-bg); color: var(--badge-no-fuel-text); }
         .badge-queue { background: var(--badge-queue-bg); color: var(--badge-queue-text); }
         .badge-cars { background: #e8e0f0; color: #5b3a8c; }
+        .badge-92 { background: #d4f7dc; color: #148528; }
+        .badge-95 { background: #fff3cd; color: #856404; }
+        .badge-100 { background: #ffe5e5; color: #d40000; }
+        .badge-dt { background: #dbe9ff; color: #004a8f; }
         [data-theme="dark"] .badge-cars { background: #2d1f3d; color: #c4a6ff; }
+        [data-theme="dark"] .badge-92 { background: #1a3d24; color: #30d158; }
+        [data-theme="dark"] .badge-95 { background: #3d3520; color: #ffd60a; }
+        [data-theme="dark"] .badge-100 { background: #3d1a1a; color: #ff453a; }
+        [data-theme="dark"] .badge-dt { background: #1a2d40; color: #5baeff; }
         .comment-time { margin-left: auto; font-size: 9px; color: var(--text-secondary); }
         .form-section { display: flex; flex-direction: column; gap: 5px; }
         .form-label { font-size: 10px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; }
-        .btn-row { display: flex; gap: 5px; }
+        .btn-row { display: flex; gap: 5px; flex-wrap: wrap; }
         .btn {
             flex: 1; padding: 8px 6px; border: 2px solid var(--btn-border);
             border-radius: var(--radius-sm); background: var(--btn-bg); font-size: 12px;
             font-weight: 600; cursor: pointer; transition: all 0.12s;
-            text-align: center; color: var(--text);
+            text-align: center; color: var(--text); min-width: 50px;
         }
         .btn.selected { border-color: var(--btn-selected-border); background: var(--btn-selected-bg); color: var(--btn-selected-text); }
         .btn:active { transform: scale(0.97); }
@@ -196,9 +209,9 @@
         .btn-submit:disabled { background: #a0a0a5; cursor: not-allowed; opacity: 0.5; }
         @media (max-width: 380px) {
             .header-text h1 { font-size: 14px; }
-            .filter-panel { min-width: 135px; padding: 4px; }
+            .filter-wrapper { min-width: 140px; }
             .filter-btn { font-size: 10px; padding: 5px 7px; }
-            .stat-chip .value { font-size: 16px; }
+            .stat-chip .value { font-size: 14px; }
             .comment-panel { padding: 10px 12px; right: 8px; left: 8px; }
         }
         .comments-list::-webkit-scrollbar { width: 2px; }
@@ -224,17 +237,30 @@
     <div id="map-container">
         <div id="map"></div>
         
-        <div class="filter-panel">
-            <div class="filter-title">🔍 Фильтр</div>
-            <button class="filter-btn active" data-filter="all" onclick="setFilter('all',this)">📍 Все <span class="filter-count" id="countAll">55</span></button>
-            <button class="filter-btn" data-filter="has_fuel" onclick="setFilter('has_fuel',this)"><span class="filter-dot" style="background:#34c759"></span> Есть бензин <span class="filter-count" id="countHasFuel">0</span></button>
-            <button class="filter-btn" data-filter="no_fuel" onclick="setFilter('no_fuel',this)"><span class="filter-dot" style="background:#ff3b30"></span> Нет бензина <span class="filter-count" id="countNoFuel">0</span></button>
+        <!-- Фильтр -->
+        <div class="filter-wrapper" id="filterWrapper">
+            <div class="filter-toggle" onclick="toggleFilter()">
+                🔍 Фильтры <span class="arrow">▼</span>
+            </div>
+            <div class="filter-content">
+                <div class="filter-title">Статус</div>
+                <button class="filter-btn active" data-filter="all" onclick="setFilter('all',this)">📍 Все <span class="filter-count" id="countAll">55</span></button>
+                <button class="filter-btn" data-filter="has_fuel" onclick="setFilter('has_fuel',this)"><span class="filter-dot" style="background:#34c759"></span> Есть бензин <span class="filter-count" id="countHasFuel">0</span></button>
+                <button class="filter-btn" data-filter="no_fuel" onclick="setFilter('no_fuel',this)"><span class="filter-dot" style="background:#ff3b30"></span> Нет бензина <span class="filter-count" id="countNoFuel">0</span></button>
+                <div class="filter-title">Тип топлива</div>
+                <button class="filter-btn" data-filter="fuel_92" onclick="setFilter('fuel_92',this)"><span class="filter-dot" style="background:var(--fuel-92)"></span> АИ-92 <span class="filter-count" id="countFuel92">0</span></button>
+                <button class="filter-btn" data-filter="fuel_95" onclick="setFilter('fuel_95',this)"><span class="filter-dot" style="background:var(--fuel-95)"></span> АИ-95 <span class="filter-count" id="countFuel95">0</span></button>
+                <button class="filter-btn" data-filter="fuel_100" onclick="setFilter('fuel_100',this)"><span class="filter-dot" style="background:var(--fuel-100)"></span> АИ-100 <span class="filter-count" id="countFuel100">0</span></button>
+                <button class="filter-btn" data-filter="fuel_dt" onclick="setFilter('fuel_dt',this)"><span class="filter-dot" style="background:var(--fuel-dt)"></span> ДТ <span class="filter-count" id="countFuelDT">0</span></button>
+            </div>
         </div>
 
         <div class="legend">
-            <div class="legend-item"><span class="legend-dot" style="background:#34c759"></span> Бензин есть</div>
-            <div class="legend-item"><span class="legend-dot" style="background:#ff3b30"></span> Бензина нет</div>
-            <div class="legend-item"><span class="legend-dot" style="background:#8e8e93"></span> Нет данных</div>
+            <div class="legend-item"><span class="legend-dot" style="background:var(--fuel-92)"></span> 92</div>
+            <div class="legend-item"><span class="legend-dot" style="background:var(--fuel-95)"></span> 95</div>
+            <div class="legend-item"><span class="legend-dot" style="background:var(--fuel-100)"></span> 100</div>
+            <div class="legend-item"><span class="legend-dot" style="background:var(--fuel-dt)"></span> ДТ</div>
+            <div class="legend-item"><span class="legend-dot" style="background:#ff3b30"></span> Нет</div>
         </div>
 
         <div class="comment-panel" id="commentPanel">
@@ -243,25 +269,37 @@
                 <button class="close-btn" onclick="closePanel()">✕</button>
             </div>
             <div class="stats-row">
-                <div class="stat-chip"><div class="label">Шанс бензина</div><div class="value" id="fuelChance">--%</div></div>
-                <div class="stat-chip"><div class="label">Очередь (средняя)</div><div class="value" id="avgQueue">--</div></div>
+                <div class="stat-chip"><div class="label">92</div><div class="value" id="fuel92">--%</div></div>
+                <div class="stat-chip"><div class="label">95</div><div class="value" id="fuel95">--%</div></div>
+                <div class="stat-chip"><div class="label">100</div><div class="value" id="fuel100">--%</div></div>
+                <div class="stat-chip"><div class="label">ДТ</div><div class="value" id="fuelDT">--%</div></div>
+                <div class="stat-chip"><div class="label">Очередь</div><div class="value" id="avgQueue">--</div></div>
             </div>
             <div class="comments-list" id="commentsList"><div style="color:var(--text-secondary);text-align:center;font-size:11px;padding:6px;">Нет отзывов</div></div>
             <div class="form-section">
-                <div class="form-label">Бензин?</div>
+                <div class="form-label">Бензин есть?</div>
                 <div class="btn-row" id="fuelBtns">
                     <div class="btn" data-value="yes" onclick="selectBtn(this,'fuel')">✅ Есть</div>
                     <div class="btn" data-value="no" onclick="selectBtn(this,'fuel')">❌ Нет</div>
                 </div>
-                <div class="queue-input-group" id="queueGroup">
-                    <div class="form-label">Очередь?</div>
-                    <div class="btn-row" id="queueBtns">
-                        <div class="btn" data-value="yes" onclick="selectBtn(this,'queue')">🚗 Есть</div>
-                        <div class="btn" data-value="no" onclick="selectBtn(this,'queue')">✅ Нет</div>
+                <div class="queue-input-group" id="fuelTypeGroup">
+                    <div class="form-label">Какой бензин? (можно несколько)</div>
+                    <div class="btn-row" id="fuelTypeBtns">
+                        <div class="btn" data-value="92" onclick="selectFuelType(this)">92</div>
+                        <div class="btn" data-value="95" onclick="selectFuelType(this)">95</div>
+                        <div class="btn" data-value="100" onclick="selectFuelType(this)">100</div>
+                        <div class="btn" data-value="dt" onclick="selectFuelType(this)">ДТ</div>
                     </div>
-                    <div class="queue-input-group" id="carsGroup">
-                        <div class="form-label">Сколько машин?</div>
-                        <input type="number" class="queue-input" id="carsCount" placeholder="5" min="1" max="99">
+                    <div class="queue-input-group" id="queueGroup">
+                        <div class="form-label">Очередь?</div>
+                        <div class="btn-row" id="queueBtns">
+                            <div class="btn" data-value="yes" onclick="selectBtn(this,'queue')">🚗 Есть</div>
+                            <div class="btn" data-value="no" onclick="selectBtn(this,'queue')">✅ Нет</div>
+                        </div>
+                        <div class="queue-input-group" id="carsGroup">
+                            <div class="form-label">Сколько машин?</div>
+                            <input type="number" class="queue-input" id="carsCount" placeholder="5" min="1" max="99">
+                        </div>
                     </div>
                 </div>
             </div>
@@ -290,7 +328,7 @@
             });
         }
 
-        const STORAGE_KEY = 'astrakhan_fuel_data_v7';
+        const STORAGE_KEY = 'astrakhan_fuel_data_v8';
         const THEME_KEY = 'astrakhan_fuel_theme';
         const API_BASE = 'https://benztg-production.up.railway.app/api';
 
@@ -371,8 +409,16 @@
         function saveData(data) { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); }
 
         let stationsData = initData();
-        let selectedStationId = null, selectedFuel = null, selectedQueue = null, currentFilter = 'all';
+        let selectedStationId = null, selectedFuel = null, selectedQueue = null;
+        let selectedFuelTypes = new Set();
+        let currentFilter = 'all';
 
+        // ==================== ФИЛЬТР СВОРАЧИВАНИЕ ====================
+        function toggleFilter() {
+            document.getElementById('filterWrapper').classList.toggle('collapsed');
+        }
+
+        // ==================== СИНХРОНИЗАЦИЯ ====================
         async function loadCommentsFromServer() {
             try {
                 const r = await fetch(`${API_BASE}/comments`, { mode: 'cors' });
@@ -389,15 +435,13 @@
                 saveData(stationsData);
                 document.getElementById('syncDot').style.background = '#34c759';
             } catch(e) {
-                console.log('Оффлайн:', e);
                 document.getElementById('syncDot').style.background = '#ff9500';
             }
         }
         async function submitToServer(sid, comment) {
             try {
                 await fetch(`${API_BASE}/comments`, {
-                    method: 'POST',
-                    mode: 'cors',
+                    method: 'POST', mode: 'cors',
                     headers: {'Content-Type':'application/json'},
                     body: JSON.stringify({station_id:sid, comment})
                 });
@@ -418,12 +462,12 @@
             document.getElementById('themeToggle').textContent = n === 'dark' ? '☀️' : '🌙';
         }
 
-        function getFuelProbability(c) {
-            if (!c.length) return null;
-            const recent = c.filter(x => (Date.now() - x.timestamp) < 4*3600000);
-            const pool = recent.length ? recent : c;
-            const yes = pool.filter(x => x.hasFuel).length;
-            return {probability: yes/pool.length, total: pool.length};
+        function getFuelProbability(c, type) {
+            const filtered = c.filter(x => x.hasFuel && x.fuelTypes && x.fuelTypes.includes(type));
+            if (!filtered.length) return null;
+            const recent = filtered.filter(x => (Date.now() - x.timestamp) < 4*3600000);
+            const pool = recent.length ? recent : filtered;
+            return {probability: pool.length / Math.max(1, c.filter(x => x.hasFuel).length), total: pool.length};
         }
         function getAvgQueue(c) {
             const withCars = c.filter(x => x.hasFuel && x.hasQueue && x.carsCount > 0);
@@ -434,11 +478,11 @@
         function getStatus(sid) {
             const s = stationsData[sid];
             if (!s || !s.comments.length) return 'no_data';
-            const fp = getFuelProbability(s.comments);
-            if (!fp) return 'no_data';
+            const hasFuelComments = s.comments.filter(c => c.hasFuel);
+            if (!hasFuelComments.length) return 'no_fuel';
             const latest = s.comments.reduce((a,b)=>a.timestamp>b.timestamp?a:b);
             if ((Date.now()-latest.timestamp) > 2*3600000) return 'outdated';
-            return fp.probability >= 0.5 ? 'has_fuel' : 'no_fuel';
+            return 'has_fuel';
         }
         function getColor(sid) {
             const st = getStatus(sid);
@@ -446,6 +490,20 @@
             if (st==='no_fuel') return '#ff3b30';
             if (st==='outdated') return '#ffcc00';
             return '#8e8e93';
+        }
+        function getBestFuelType(sid) {
+            const s = stationsData[sid];
+            if (!s || !s.comments.length) return null;
+            const fuelComments = s.comments.filter(c => c.hasFuel && c.fuelTypes);
+            if (!fuelComments.length) return '#34c759';
+            const counts = {92:0, 95:0, 100:0, dt:0};
+            fuelComments.forEach(c => c.fuelTypes.forEach(t => { if (counts[t] !== undefined) counts[t]++; }));
+            const max = Math.max(...Object.values(counts));
+            if (max === 0) return '#34c759';
+            if (counts[92] === max) return '#34c759';
+            if (counts[95] === max) return '#ff9500';
+            if (counts[100] === max) return '#ff3b30';
+            return '#007aff';
         }
 
         function renderMarkers() {
@@ -455,9 +513,14 @@
                 const st = getStatus(s.id);
                 if (currentFilter==='has_fuel' && st!=='has_fuel') return;
                 if (currentFilter==='no_fuel' && st!=='no_fuel') return;
+                if (currentFilter.startsWith('fuel_')) {
+                    const type = currentFilter.replace('fuel_','');
+                    const hasType = s.comments.some(c => c.hasFuel && c.fuelTypes && c.fuelTypes.includes(type));
+                    if (!hasType) return;
+                }
 
-                const color = getColor(s.id);
-                const fp = getFuelProbability(s.comments);
+                const color = currentFilter.startsWith('fuel_') ? getBestFuelType(s.id) : getColor(s.id);
+                const fp = getFuelProbability(s.comments, '92');
                 const aq = getAvgQueue(s.comments);
                 const hasComments = s.comments.length > 0;
                 
@@ -470,8 +533,14 @@
                 });
                 
                 let popup = `<b>${s.address}</b>`;
-                if (fp) popup += `<br><br>⛽ Бензин: <b>${Math.round(fp.probability*100)}%</b> (${fp.total} отз.)`;
-                else popup += `<br><br><i>Нет данных</i>`;
+                if (fp) popup += `<br><br>⛽ АИ-92: <b>${Math.round(fp.probability*100)}%</b>`;
+                const fp95 = getFuelProbability(s.comments, '95');
+                if (fp95) popup += `<br>⛽ АИ-95: <b>${Math.round(fp95.probability*100)}%</b>`;
+                const fp100 = getFuelProbability(s.comments, '100');
+                if (fp100) popup += `<br>⛽ АИ-100: <b>${Math.round(fp100.probability*100)}%</b>`;
+                const fpdt = getFuelProbability(s.comments, 'dt');
+                if (fpdt) popup += `<br>⛽ ДТ: <b>${Math.round(fpdt.probability*100)}%</b>`;
+                if (!fp && !fp95 && !fp100 && !fpdt) popup += `<br><br><i>Нет данных</i>`;
                 if (aq) popup += `<br>🚗 Очередь: ~<b>${aq.avg}</b> машин`;
                 popup += `<br><small>▶ Нажмите для деталей</small>`;
                 
@@ -492,19 +561,29 @@
         function setFilter(f, btn) {
             currentFilter = f;
             document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
+            if (btn) btn.classList.add('active');
+            else document.querySelector(`[data-filter="${f}"]`)?.classList.add('active');
             renderMarkers();
         }
         function updateCounts() {
-            let c = {all:0, has_fuel:0, no_fuel:0};
+            let c = {all:0, has_fuel:0, no_fuel:0, fuel_92:0, fuel_95:0, fuel_100:0, fuel_dt:0};
             Object.values(stationsData).forEach(s => {
                 c.all++;
                 const st = getStatus(s.id);
-                if(st==='has_fuel')c.has_fuel++; else if(st==='no_fuel')c.no_fuel++;
+                if(st==='has_fuel') c.has_fuel++;
+                else if(st==='no_fuel') c.no_fuel++;
+                if(s.comments.some(x => x.hasFuel && x.fuelTypes && x.fuelTypes.includes('92'))) c.fuel_92++;
+                if(s.comments.some(x => x.hasFuel && x.fuelTypes && x.fuelTypes.includes('95'))) c.fuel_95++;
+                if(s.comments.some(x => x.hasFuel && x.fuelTypes && x.fuelTypes.includes('100'))) c.fuel_100++;
+                if(s.comments.some(x => x.hasFuel && x.fuelTypes && x.fuelTypes.includes('dt'))) c.fuel_dt++;
             });
             document.getElementById('countAll').textContent = c.all;
             document.getElementById('countHasFuel').textContent = c.has_fuel;
             document.getElementById('countNoFuel').textContent = c.no_fuel;
+            document.getElementById('countFuel92').textContent = c.fuel_92;
+            document.getElementById('countFuel95').textContent = c.fuel_95;
+            document.getElementById('countFuel100').textContent = c.fuel_100;
+            document.getElementById('countFuelDT').textContent = c.fuel_dt;
         }
 
         function openPanel(sid) {
@@ -518,8 +597,9 @@
             selectedStationId = null; resetForm();
         }
         function resetForm() {
-            selectedFuel = null; selectedQueue = null;
-            document.querySelectorAll('#fuelBtns .btn,#queueBtns .btn').forEach(b=>b.classList.remove('selected'));
+            selectedFuel = null; selectedQueue = null; selectedFuelTypes.clear();
+            document.querySelectorAll('#fuelBtns .btn,#queueBtns .btn,#fuelTypeBtns .btn').forEach(b=>b.classList.remove('selected'));
+            document.getElementById('fuelTypeGroup').classList.remove('active');
             document.getElementById('queueGroup').classList.remove('active');
             document.getElementById('carsGroup').classList.remove('active');
             document.getElementById('carsCount').value = '';
@@ -529,9 +609,9 @@
             btn.classList.add('selected');
             if (type==='fuel') {
                 selectedFuel = btn.dataset.value;
-                const qg = document.getElementById('queueGroup');
-                if (selectedFuel==='yes') qg.classList.add('active');
-                else { qg.classList.remove('active'); document.getElementById('carsGroup').classList.remove('active'); selectedQueue=null; }
+                const ftg = document.getElementById('fuelTypeGroup');
+                if (selectedFuel==='yes') ftg.classList.add('active');
+                else { ftg.classList.remove('active'); document.getElementById('queueGroup').classList.remove('active'); document.getElementById('carsGroup').classList.remove('active'); selectedQueue=null; selectedFuelTypes.clear(); }
             } else {
                 selectedQueue = btn.dataset.value;
                 const cg = document.getElementById('carsGroup');
@@ -540,12 +620,32 @@
             }
             updateSubmit();
         }
-        function updateSubmit() { document.getElementById('submitBtn').disabled = !selectedFuel; }
+        function selectFuelType(btn) {
+            const val = btn.dataset.value;
+            if (btn.classList.contains('selected')) {
+                btn.classList.remove('selected');
+                selectedFuelTypes.delete(val);
+            } else {
+                btn.classList.add('selected');
+                selectedFuelTypes.add(val);
+            }
+            const qg = document.getElementById('queueGroup');
+            if (selectedFuelTypes.size > 0) qg.classList.add('active');
+            else qg.classList.remove('active');
+            updateSubmit();
+        }
+        function updateSubmit() {
+            const ok = selectedFuel === 'yes' ? selectedFuelTypes.size > 0 : selectedFuel === 'no';
+            document.getElementById('submitBtn').disabled = !ok;
+        }
         function updateStats() {
             if (!selectedStationId) return;
-            const fp = getFuelProbability(stationsData[selectedStationId].comments);
-            const aq = getAvgQueue(stationsData[selectedStationId].comments);
-            document.getElementById('fuelChance').textContent = fp ? Math.round(fp.probability*100)+'%' : '--%';
+            const c = stationsData[selectedStationId].comments;
+            ['92','95','100','dt'].forEach(t => {
+                const fp = getFuelProbability(c, t);
+                document.getElementById('fuel'+t.toUpperCase()).textContent = fp ? Math.round(fp.probability*100)+'%' : '--%';
+            });
+            const aq = getAvgQueue(c);
             document.getElementById('avgQueue').textContent = aq ? '~'+aq.avg+' маш.' : '--';
         }
         function renderComments() {
@@ -556,6 +656,11 @@
             list.innerHTML = [...comments].sort((a,b)=>b.timestamp-a.timestamp).slice(0,20).map(c => {
                 const t = new Date(c.timestamp);
                 let badges = `<span class="badge ${c.hasFuel?'badge-fuel':'badge-nofuel'}">${c.hasFuel?'✅ Есть':'❌ Нет'}</span>`;
+                if (c.hasFuel && c.fuelTypes) {
+                    c.fuelTypes.forEach(ft => {
+                        badges += `<span class="badge badge-${ft}">${ft.toUpperCase()}</span>`;
+                    });
+                }
                 if (c.hasFuel && c.hasQueue) badges += `<span class="badge badge-queue">🚗 Очередь</span>`;
                 if (c.hasQueue && c.carsCount > 0) badges += `<span class="badge badge-cars">${c.carsCount} маш.</span>`;
                 if (c.hasFuel && !c.hasQueue) badges += `<span class="badge badge-fuel">✅ Свободно</span>`;
@@ -563,12 +668,27 @@
             }).join('');
         }
         async function submitComment() {
-            if (!selectedStationId || !selectedFuel) return;
+            if (!selectedStationId) return;
+            if (selectedFuel === 'no') {
+                const comment = {
+                    hasFuel: false, hasQueue: false, fuelTypes: [],
+                    carsCount: 0, timestamp: Date.now(),
+                    userId: window.Telegram?.WebApp?.initDataUnsafe?.user?.id?.toString() || 'anon'
+                };
+                stationsData[selectedStationId].comments.push(comment);
+                saveData(stationsData);
+                const synced = await submitToServer(selectedStationId, comment);
+                updateStats(); renderComments(); renderMarkers(); resetForm(); updateSubmit();
+                if (synced) setTimeout(loadCommentsFromServer, 1500);
+                return;
+            }
+            if (selectedFuelTypes.size === 0) return;
             const carsVal = parseInt(document.getElementById('carsCount').value) || 0;
             const comment = {
-                hasFuel: selectedFuel==='yes',
-                hasQueue: selectedFuel==='yes' ? selectedQueue==='yes' : false,
-                carsCount: (selectedFuel==='yes' && selectedQueue==='yes') ? carsVal : 0,
+                hasFuel: true,
+                hasQueue: selectedQueue === 'yes',
+                fuelTypes: [...selectedFuelTypes],
+                carsCount: (selectedQueue === 'yes') ? carsVal : 0,
                 timestamp: Date.now(),
                 userId: window.Telegram?.WebApp?.initDataUnsafe?.user?.id?.toString() || 'anon'
             };
