@@ -35,138 +35,57 @@
             --fuel-92: #30d158; --fuel-95: #ff9f0a; --fuel-100: #ff453a; --fuel-dt: #0a84ff;
         }
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        html, body {
-            width: 100%; height: 100%;
-            overflow: hidden;
-            -webkit-overflow-scrolling: none;
-            overscroll-behavior: none;
-        }
+        html, body { width: 100%; height: 100%; overflow: hidden; overscroll-behavior: none; }
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', Roboto, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
             background: var(--bg); color: var(--text);
             height: 100vh; height: 100dvh; display: flex; flex-direction: column;
-            overflow: hidden; touch-action: manipulation;
-            transition: background 0.3s, color 0.3s;
-            -webkit-font-smoothing: antialiased;
             position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            touch-action: manipulation; transition: background 0.3s, color 0.3s;
         }
-        .header {
-            padding: 10px 16px; background: var(--surface);
-            border-bottom: 1px solid var(--border); z-index: 2000; flex-shrink: 0;
-            display: flex; align-items: center; justify-content: space-between; gap: 10px;
-        }
+        .header { padding: 10px 16px; background: var(--surface); border-bottom: 1px solid var(--border); z-index: 2000; display: flex; align-items: center; justify-content: space-between; }
         .header-left { display: flex; align-items: center; gap: 10px; }
         .header-logo { font-size: 24px; }
         .header-text h1 { font-size: 15px; font-weight: 700; }
         .header-text .subtitle { font-size: 10px; color: var(--text-secondary); }
-        .header-right { display: flex; align-items: center; gap: 6px; }
         .sync-dot { width: 7px; height: 7px; border-radius: 50%; background: #34c759; animation: pulse 2s infinite; }
         @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
-        .theme-btn {
-            width: 32px; height: 32px; border-radius: 16px;
-            border: 1.5px solid var(--border); background: var(--surface);
-            cursor: pointer; font-size: 15px; display: flex;
-            align-items: center; justify-content: center; transition: all 0.2s;
-            box-shadow: var(--shadow-sm);
-        }
-        .theme-btn:active { transform: scale(0.93); }
-        #map-container { flex: 1; width: 100%; position: relative; z-index: 1; overflow: hidden; }
-        #map { width: 100%; height: 100%; border: none; touch-action: manipulation !important; }
-        .dg-zoom { border-radius: 14px !important; overflow: hidden !important; box-shadow: 0 2px 12px rgba(0,0,0,0.15) !important; }
-        .dg-zoom__in, .dg-zoom__out {
-            width: 48px !important; height: 48px !important; line-height: 48px !important;
-            font-size: 26px !important; font-weight: 300 !important;
-            background: var(--surface) !important; color: var(--text) !important;
-            border: 1px solid var(--border) !important; text-align: center !important;
-            cursor: pointer !important; user-select: none !important;
-        }
-        .dg-zoom__in:active, .dg-zoom__out:active { background: var(--surface2) !important; }
-
-        /* Фильтр */
-        .filter-wrapper {
-            position: absolute; top: 10px; left: 10px; z-index: 1000;
-            background: var(--filter-bg); border-radius: var(--radius-md);
-            box-shadow: var(--shadow-md); border: 1px solid var(--border);
-            backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
-            min-width: 155px; transition: all 0.3s;
-        }
+        .theme-btn { width: 32px; height: 32px; border-radius: 16px; border: 1.5px solid var(--border); background: var(--surface); cursor: pointer; font-size: 15px; display: flex; align-items: center; justify-content: center; }
+        #map-container { flex: 1; position: relative; overflow: hidden; }
+        #map { width: 100%; height: 100%; touch-action: manipulation !important; }
+        .dg-zoom__in, .dg-zoom__out { width: 48px !important; height: 48px !important; line-height: 48px !important; font-size: 26px !important; background: var(--surface) !important; color: var(--text) !important; border: 1px solid var(--border) !important; text-align: center !important; cursor: pointer !important; }
+        .filter-wrapper { position: absolute; top: 10px; left: 10px; z-index: 1000; background: var(--filter-bg); border-radius: var(--radius-md); box-shadow: var(--shadow-md); border: 1px solid var(--border); backdrop-filter: blur(24px); min-width: 155px; transition: all 0.3s; }
         .filter-wrapper.collapsed .filter-content { display: none; }
-        .filter-wrapper.collapsed { min-width: auto; }
-        .filter-toggle {
-            display: flex; align-items: center; justify-content: space-between;
-            padding: 8px 10px; cursor: pointer; font-size: 12px; font-weight: 700;
-            color: var(--text); gap: 6px;
-        }
-        .filter-toggle .arrow {
-            transition: transform 0.3s; font-size: 10px;
-        }
+        .filter-toggle { display: flex; align-items: center; justify-content: space-between; padding: 8px 10px; cursor: pointer; font-size: 12px; font-weight: 700; gap: 6px; }
+        .filter-toggle .arrow { transition: transform 0.3s; font-size: 10px; }
         .filter-wrapper.collapsed .arrow { transform: rotate(-90deg); }
         .filter-content { padding: 0 5px 5px; }
-        .filter-title {
-            font-size: 8px; text-transform: uppercase; color: var(--text-secondary);
-            padding: 5px 10px 2px; letter-spacing: 1.5px; font-weight: 700;
-        }
-        .filter-btn {
-            padding: 6px 9px; border-radius: var(--radius-sm); border: none;
-            background: transparent; font-size: 11px; font-weight: 600;
-            cursor: pointer; text-align: left; color: var(--text);
-            transition: all 0.12s; display: flex; align-items: center; gap: 7px;
-        }
+        .filter-title { font-size: 8px; text-transform: uppercase; color: var(--text-secondary); padding: 5px 10px 2px; letter-spacing: 1.5px; font-weight: 700; }
+        .filter-btn { padding: 6px 9px; border-radius: var(--radius-sm); border: none; background: transparent; font-size: 11px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 7px; color: var(--text); width: 100%; text-align: left; }
         .filter-btn.active { background: var(--accent); color: #fff; }
-        .filter-btn:active { transform: scale(0.97); }
-        .filter-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
-        .filter-count {
-            margin-left: auto; font-size: 9px; font-weight: 600;
-            background: var(--surface2); padding: 1px 7px; border-radius: 9px; min-width: 20px; text-align: center;
-        }
+        .filter-dot { width: 9px; height: 9px; border-radius: 50%; }
+        .filter-count { margin-left: auto; font-size: 9px; background: var(--surface2); padding: 1px 7px; border-radius: 9px; min-width: 20px; text-align: center; }
         .filter-btn.active .filter-count { background: rgba(255,255,255,0.2); }
-
-        /* Легенда */
-        .legend {
-            position: absolute; top: 10px; right: 10px;
-            background: var(--legend-bg); padding: 7px 10px; border-radius: var(--radius-sm);
-            font-size: 9px; box-shadow: var(--shadow-md); display: flex;
-            flex-direction: column; gap: 3px; backdrop-filter: blur(24px);
-            -webkit-backdrop-filter: blur(24px); border: 1px solid var(--border); z-index: 1000;
-        }
+        .legend { position: absolute; top: 10px; right: 10px; background: var(--legend-bg); padding: 7px 10px; border-radius: var(--radius-sm); font-size: 9px; box-shadow: var(--shadow-md); z-index: 1000; border: 1px solid var(--border); display: flex; flex-direction: column; gap: 3px; }
         .legend-item { display: flex; align-items: center; gap: 5px; font-weight: 500; }
-        .legend-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
-
-        /* Панель */
-        .comment-panel {
-            position: absolute; bottom: 90px; right: 12px; left: 12px;
-            background: var(--panel-bg); border-radius: var(--radius-lg);
-            padding: 14px 16px; box-shadow: 0 -4px 30px var(--shadow);
-            z-index: 1000; display: none; max-height: 48vh;
-            overflow-y: auto; transition: all 0.2s ease;
-            border: 1px solid var(--border);
-        }
-        .comment-panel.active { display: block; animation: slideUp 0.2s ease; }
+        .legend-dot { width: 8px; height: 8px; border-radius: 50%; }
+        .comment-panel { position: absolute; bottom: 20px; right: 12px; left: 12px; background: var(--panel-bg); border-radius: var(--radius-lg); padding: 14px 16px; box-shadow: 0 -4px 30px var(--shadow); z-index: 1000; display: none; max-height: 55vh; overflow-y: auto; border: 1px solid var(--border); }
+        .comment-panel.active { display: block !important; animation: slideUp 0.2s ease; }
         @keyframes slideUp { from { transform: translateY(15px); opacity: 0; } }
-        .panel-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 8px; gap: 8px; }
+        .panel-header { display: flex; justify-content: space-between; margin-bottom: 8px; }
         .panel-info h3 { font-size: 13px; font-weight: 700; }
-        .close-btn {
-            background: var(--surface2); border: none; width: 26px; height: 26px;
-            border-radius: 13px; display: flex; align-items: center; justify-content: center;
-            cursor: pointer; font-size: 13px; color: var(--text); flex-shrink: 0;
-        }
-        .close-btn:active { background: var(--border); }
+        .close-btn { background: var(--surface2); border: none; width: 26px; height: 26px; border-radius: 13px; cursor: pointer; font-size: 13px; color: var(--text); }
         .stats-row { display: flex; gap: 6px; margin-bottom: 8px; flex-wrap: wrap; }
-        .stat-chip {
-            background: var(--surface2); padding: 7px 10px; border-radius: var(--radius-sm);
-            font-size: 11px; font-weight: 600; flex: 1; text-align: center; min-width: 60px;
-        }
+        .stat-chip { background: var(--surface2); padding: 7px 10px; border-radius: var(--radius-sm); font-size: 11px; font-weight: 600; flex: 1; text-align: center; min-width: 50px; }
         .stat-chip .label { font-size: 9px; color: var(--text-secondary); font-weight: 500; }
-        .stat-chip .value { font-size: 16px; font-weight: 700; color: var(--accent); line-height: 1.1; }
-        .comments-list {
-            display: flex; flex-direction: column; gap: 4px;
-            max-height: 100px; overflow-y: auto; margin-bottom: 8px; padding-right: 2px;
-        }
-        .comment-item {
-            background: var(--comment-bg); padding: 6px 9px; border-radius: var(--radius-sm);
-            font-size: 11px; display: flex; align-items: center; gap: 5px; flex-wrap: wrap;
-        }
-        .badge { padding: 2px 7px; border-radius: 12px; font-size: 9px; font-weight: 700; white-space: nowrap; }
+        .stat-chip .value { font-size: 20px; font-weight: 700; color: var(--accent); line-height: 1.1; }
+        .comments-list { display: flex; flex-direction: column; gap: 5px; max-height: 120px; overflow-y: auto; margin-bottom: 8px; padding-right: 2px; }
+        .comment-item { padding: 8px 10px; border-radius: var(--radius-sm); font-size: 12px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+        .comment-item.fresh { background: #d4f7dc; }
+        .comment-item.old { background: #ffe5e5; }
+        [data-theme="dark"] .comment-item.fresh { background: #1a3d24; }
+        [data-theme="dark"] .comment-item.old { background: #3d1a1a; }
+        .badge { padding: 3px 8px; border-radius: 14px; font-size: 10px; font-weight: 700; white-space: nowrap; }
         .badge-fuel { background: var(--badge-fuel-bg); color: var(--badge-fuel-text); }
         .badge-nofuel { background: var(--badge-no-fuel-bg); color: var(--badge-no-fuel-text); }
         .badge-queue { background: var(--badge-queue-bg); color: var(--badge-queue-text); }
@@ -175,86 +94,46 @@
         .badge-95 { background: #fff3cd; color: #856404; }
         .badge-100 { background: #ffe5e5; color: #d40000; }
         .badge-dt { background: #dbe9ff; color: #004a8f; }
-        [data-theme="dark"] .badge-cars { background: #2d1f3d; color: #c4a6ff; }
         [data-theme="dark"] .badge-92 { background: #1a3d24; color: #30d158; }
         [data-theme="dark"] .badge-95 { background: #3d3520; color: #ffd60a; }
         [data-theme="dark"] .badge-100 { background: #3d1a1a; color: #ff453a; }
         [data-theme="dark"] .badge-dt { background: #1a2d40; color: #5baeff; }
-        .comment-time { margin-left: auto; font-size: 9px; color: var(--text-secondary); }
-        .form-section { display: flex; flex-direction: column; gap: 5px; }
-        .form-label { font-size: 10px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; }
+        .comment-time { margin-left: auto; font-size: 11px; font-weight: 600; color: var(--text-secondary); }
+        .form-label { font-size: 10px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; margin: 6px 0 4px; }
         .btn-row { display: flex; gap: 5px; flex-wrap: wrap; }
-        .btn {
-            flex: 1; padding: 8px 6px; border: 2px solid var(--btn-border);
-            border-radius: var(--radius-sm); background: var(--btn-bg); font-size: 12px;
-            font-weight: 600; cursor: pointer; transition: all 0.12s;
-            text-align: center; color: var(--text); min-width: 50px;
-        }
+        .btn { flex: 1; padding: 8px 6px; border: 2px solid var(--btn-border); border-radius: var(--radius-sm); background: var(--btn-bg); font-size: 12px; font-weight: 600; cursor: pointer; text-align: center; color: var(--text); min-width: 45px; }
         .btn.selected { border-color: var(--btn-selected-border); background: var(--btn-selected-bg); color: var(--btn-selected-text); }
-        .btn:active { transform: scale(0.97); }
         .queue-input-group { display: none; }
         .queue-input-group.active { display: block; }
-        .queue-input {
-            width: 100%; padding: 8px 12px; border: 2px solid var(--btn-border);
-            border-radius: var(--radius-sm); background: var(--btn-bg); font-size: 13px;
-            color: var(--text); outline: none; font-weight: 600; text-align: center;
-        }
-        .queue-input:focus { border-color: var(--accent); }
-        .btn-submit {
-            width: 100%; padding: 10px; background: var(--accent); color: #fff;
-            border: none; border-radius: var(--radius-sm); font-size: 14px; font-weight: 700;
-            cursor: pointer; margin-top: 2px; transition: all 0.15s;
-        }
-        .btn-submit:active { opacity: 0.85; transform: scale(0.98); }
-        .btn-submit:disabled { background: #a0a0a5; cursor: not-allowed; opacity: 0.5; }
-        @media (max-width: 380px) {
-            .header-text h1 { font-size: 14px; }
-            .filter-wrapper { min-width: 140px; }
-            .filter-btn { font-size: 10px; padding: 5px 7px; }
-            .stat-chip .value { font-size: 14px; }
-            .comment-panel { padding: 10px 12px; right: 8px; left: 8px; }
-        }
-        .comments-list::-webkit-scrollbar { width: 2px; }
-        .comments-list::-webkit-scrollbar-track { background: transparent; }
-        .comments-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+        .queue-input { width: 100%; padding: 8px 12px; border: 2px solid var(--btn-border); border-radius: var(--radius-sm); background: var(--btn-bg); font-size: 14px; color: var(--text); outline: none; text-align: center; font-weight: 600; }
+        .btn-submit { width: 100%; padding: 10px; background: var(--accent); color: #fff; border: none; border-radius: var(--radius-sm); font-size: 14px; font-weight: 700; cursor: pointer; margin-top: 8px; }
+        .btn-submit:disabled { background: #a0a0a5; opacity: 0.5; }
+        .subscribe-row { display: flex; align-items: center; gap: 8px; margin: 8px 0; padding: 8px 10px; background: var(--surface2); border-radius: var(--radius-sm); }
+        .subscribe-row span { font-size: 12px; font-weight: 600; flex: 1; }
+        .subscribe-btn { padding: 6px 12px !important; font-size: 11px !important; white-space: nowrap !important; flex: 0 !important; min-width: auto !important; }
     </style>
 </head>
 <body>
     <div class="header">
-        <div class="header-left">
-            <span class="header-logo">⛽</span>
-            <div class="header-text">
-                <h1>Бензин Астрахань</h1>
-                <div class="subtitle">55 АЗС • Данные обновляются онлайн</div>
-            </div>
-        </div>
-        <div class="header-right">
-            <span class="sync-dot" id="syncDot"></span>
-            <button class="theme-btn" id="themeToggle" onclick="toggleTheme()">🌙</button>
-        </div>
+        <div class="header-left"><span class="header-logo">⛽</span><div class="header-text"><h1>Бензин Астрахань</h1><div class="subtitle">55 АЗС • Онлайн</div></div></div>
+        <div style="display:flex;align-items:center;gap:6px;"><span class="sync-dot" id="syncDot"></span><button class="theme-btn" id="themeToggle" onclick="toggleTheme()">🌙</button></div>
     </div>
-
     <div id="map-container">
         <div id="map"></div>
-        
-        <!-- Фильтр -->
         <div class="filter-wrapper" id="filterWrapper">
-            <div class="filter-toggle" onclick="toggleFilter()">
-                🔍 Фильтры <span class="arrow">▼</span>
-            </div>
+            <div class="filter-toggle" onclick="toggleFilter()">🔍 Фильтры <span class="arrow">▼</span></div>
             <div class="filter-content">
                 <div class="filter-title">Статус</div>
                 <button class="filter-btn active" data-filter="all" onclick="setFilter('all',this)">📍 Все <span class="filter-count" id="countAll">55</span></button>
-                <button class="filter-btn" data-filter="has_fuel" onclick="setFilter('has_fuel',this)"><span class="filter-dot" style="background:#34c759"></span> Есть бензин <span class="filter-count" id="countHasFuel">0</span></button>
-                <button class="filter-btn" data-filter="no_fuel" onclick="setFilter('no_fuel',this)"><span class="filter-dot" style="background:#ff3b30"></span> Нет бензина <span class="filter-count" id="countNoFuel">0</span></button>
-                <div class="filter-title">Тип топлива</div>
+                <button class="filter-btn" data-filter="has_fuel" onclick="setFilter('has_fuel',this)"><span class="filter-dot" style="background:#34c759"></span> Есть <span class="filter-count" id="countHasFuel">0</span></button>
+                <button class="filter-btn" data-filter="no_fuel" onclick="setFilter('no_fuel',this)"><span class="filter-dot" style="background:#ff3b30"></span> Нет <span class="filter-count" id="countNoFuel">0</span></button>
+                <div class="filter-title">Топливо</div>
                 <button class="filter-btn" data-filter="fuel_92" onclick="setFilter('fuel_92',this)"><span class="filter-dot" style="background:var(--fuel-92)"></span> АИ-92 <span class="filter-count" id="countFuel92">0</span></button>
                 <button class="filter-btn" data-filter="fuel_95" onclick="setFilter('fuel_95',this)"><span class="filter-dot" style="background:var(--fuel-95)"></span> АИ-95 <span class="filter-count" id="countFuel95">0</span></button>
                 <button class="filter-btn" data-filter="fuel_100" onclick="setFilter('fuel_100',this)"><span class="filter-dot" style="background:var(--fuel-100)"></span> АИ-100 <span class="filter-count" id="countFuel100">0</span></button>
                 <button class="filter-btn" data-filter="fuel_dt" onclick="setFilter('fuel_dt',this)"><span class="filter-dot" style="background:var(--fuel-dt)"></span> ДТ <span class="filter-count" id="countFuelDT">0</span></button>
             </div>
         </div>
-
         <div class="legend">
             <div class="legend-item"><span class="legend-dot" style="background:var(--fuel-92)"></span> 92</div>
             <div class="legend-item"><span class="legend-dot" style="background:var(--fuel-95)"></span> 95</div>
@@ -262,12 +141,8 @@
             <div class="legend-item"><span class="legend-dot" style="background:var(--fuel-dt)"></span> ДТ</div>
             <div class="legend-item"><span class="legend-dot" style="background:#ff3b30"></span> Нет</div>
         </div>
-
         <div class="comment-panel" id="commentPanel">
-            <div class="panel-header">
-                <div class="panel-info"><h3 id="stationName">АЗС</h3></div>
-                <button class="close-btn" onclick="closePanel()">✕</button>
-            </div>
+            <div class="panel-header"><div class="panel-info"><h3 id="stationName">АЗС</h3></div><button class="close-btn" onclick="closePanel()">✕</button></div>
             <div class="stats-row">
                 <div class="stat-chip"><div class="label">92</div><div class="value" id="fuel92">--%</div></div>
                 <div class="stat-chip"><div class="label">95</div><div class="value" id="fuel95">--%</div></div>
@@ -276,31 +151,19 @@
                 <div class="stat-chip"><div class="label">Очередь</div><div class="value" id="avgQueue">--</div></div>
             </div>
             <div class="comments-list" id="commentsList"><div style="color:var(--text-secondary);text-align:center;font-size:11px;padding:6px;">Нет отзывов</div></div>
-            <div class="form-section">
-                <div class="form-label">Бензин есть?</div>
-                <div class="btn-row" id="fuelBtns">
-                    <div class="btn" data-value="yes" onclick="selectBtn(this,'fuel')">✅ Есть</div>
-                    <div class="btn" data-value="no" onclick="selectBtn(this,'fuel')">❌ Нет</div>
-                </div>
-                <div class="queue-input-group" id="fuelTypeGroup">
-                    <div class="form-label">Какой бензин? (можно несколько)</div>
-                    <div class="btn-row" id="fuelTypeBtns">
-                        <div class="btn" data-value="92" onclick="selectFuelType(this)">92</div>
-                        <div class="btn" data-value="95" onclick="selectFuelType(this)">95</div>
-                        <div class="btn" data-value="100" onclick="selectFuelType(this)">100</div>
-                        <div class="btn" data-value="dt" onclick="selectFuelType(this)">ДТ</div>
-                    </div>
-                    <div class="queue-input-group" id="queueGroup">
-                        <div class="form-label">Очередь?</div>
-                        <div class="btn-row" id="queueBtns">
-                            <div class="btn" data-value="yes" onclick="selectBtn(this,'queue')">🚗 Есть</div>
-                            <div class="btn" data-value="no" onclick="selectBtn(this,'queue')">✅ Нет</div>
-                        </div>
-                        <div class="queue-input-group" id="carsGroup">
-                            <div class="form-label">Сколько машин?</div>
-                            <input type="number" class="queue-input" id="carsCount" placeholder="5" min="1" max="99">
-                        </div>
-                    </div>
+            <div class="subscribe-row">
+                <span>🔔 Уведомления о бензине</span>
+                <button class="btn subscribe-btn" id="subscribeBtn" onclick="toggleSubscription()">🔔 Подписаться</button>
+            </div>
+            <div class="form-label">Бензин есть?</div>
+            <div class="btn-row" id="fuelBtns"><div class="btn" data-value="yes" onclick="selectBtn(this,'fuel')">✅ Есть</div><div class="btn" data-value="no" onclick="selectBtn(this,'fuel')">❌ Нет</div></div>
+            <div class="queue-input-group" id="fuelTypeGroup">
+                <div class="form-label">Какой бензин?</div>
+                <div class="btn-row" id="fuelTypeBtns"><div class="btn" data-value="92" onclick="selectFuelType(this)">92</div><div class="btn" data-value="95" onclick="selectFuelType(this)">95</div><div class="btn" data-value="100" onclick="selectFuelType(this)">100</div><div class="btn" data-value="dt" onclick="selectFuelType(this)">ДТ</div></div>
+                <div class="queue-input-group" id="queueGroup">
+                    <div class="form-label">Очередь?</div>
+                    <div class="btn-row" id="queueBtns"><div class="btn" data-value="yes" onclick="selectBtn(this,'queue')">🚗 Есть</div><div class="btn" data-value="no" onclick="selectBtn(this,'queue')">✅ Нет</div></div>
+                    <div class="queue-input-group" id="carsGroup"><div class="form-label">Сколько машин?</div><input type="number" class="queue-input" id="carsCount" placeholder="5" min="1" max="99"></div>
                 </div>
             </div>
             <button class="btn-submit" id="submitBtn" onclick="submitComment()">📝 Отправить</button>
@@ -310,409 +173,50 @@
     <script src="https://maps.api.2gis.ru/2.0/loader.js?pkg=full"></script>
     <script>
         let map, markersLayer;
-        
-        function init2GIS() {
-            DG.then(() => {
-                map = DG.map('map', {
-                    center: [46.355, 48.045], zoom: 12,
-                    zoomControl: false, fullscreenControl: false,
-                    preferCanvas: true, geolocation: false,
-                    dragging: true, scrollWheelZoom: true,
-                    touchZoom: true, doubleClickZoom: true,
-                    tap: true, tapTolerance: 15
-                });
-                DG.control.zoom({ position: 'bottomright' }).addTo(map);
-                markersLayer = DG.featureGroup();
-                markersLayer.addTo(map);
-                loadCommentsFromServer().then(() => renderMarkers());
-            });
-        }
-
-        const STORAGE_KEY = 'astrakhan_fuel_data_v8';
-        const THEME_KEY = 'astrakhan_fuel_theme';
-        const API_BASE = 'https://benztg-production.up.railway.app/api';
-
+        const API_BASE = 'https://benztg-production.up.railway.app/api', STORAGE_KEY = 'astrakhan_fuel_v15', THEME_KEY = 'astrakhan_fuel_theme';
         const DEFAULT_STATIONS = [
-            { id:1, lat:46.337949, lng:48.041479, address:"ул. Адмирала Нахимова, 269Г" },
-            { id:2, lat:46.335345, lng:48.057393, address:"Аэропортовское шоссе, 5" },
-            { id:3, lat:46.318666, lng:48.039550, address:"ул. Н. Островского, 135" },
-            { id:4, lat:46.339393, lng:48.021766, address:"ул. Н. Островского, 148" },
-            { id:5, lat:46.337760, lng:48.064008, address:"ул. Яблочкова, 1В" },
-            { id:6, lat:46.316528, lng:48.043385, address:"ул. Рыбинская, 3Б" },
-            { id:7, lat:46.293659, lng:47.998928, address:"ул. Дзержинского, 167А" },
-            { id:8, lat:46.301697, lng:48.010770, address:"ул. Чкалова, 143" },
-            { id:9, lat:46.361533, lng:48.055770, address:"ул. Пирогова, 179" },
-            { id:10, lat:46.341199, lng:47.987743, address:"ул. Керченская, 61" },
-            { id:11, lat:46.333201, lng:48.066452, address:"ул. Магистральная, 29" },
-            { id:12, lat:46.316267, lng:48.036899, address:"ул. Ахшарумова, 90Б" },
-            { id:13, lat:46.344947, lng:47.983260, address:"ул. Боевая, 126" },
-            { id:14, lat:46.301592, lng:48.012474, address:"Аэропортовское шоссе, 13" },
-            { id:15, lat:46.358876, lng:48.055047, address:"ул. Рождественского, 2А" },
-            { id:16, lat:46.347117, lng:48.080026, address:"ул. Анри Барбюса, 34" },
-            { id:17, lat:46.359850, lng:48.063500, address:"ул. Вокзальная, 10" },
-            { id:18, lat:46.334814, lng:47.978805, address:"ул. Славянская, 1Д" },
-            { id:19, lat:46.344166, lng:47.985158, address:"ул. Автозаправочная, 8" },
-            { id:20, lat:46.302741, lng:48.047206, address:"Началовское шоссе, 11В" },
-            { id:21, lat:46.334203, lng:47.979685, address:"Началовское шоссе, 32" },
-            { id:22, lat:46.350226, lng:48.092899, address:"ул. Ленина, 1А" },
-            { id:23, lat:46.327230, lng:48.076807, address:"ул. Ленина, 45" },
-            { id:24, lat:46.372468, lng:48.082896, address:"Аэропортовское шоссе" },
-            { id:25, lat:46.276617, lng:47.969929, address:"ул. Чкалова" },
-            { id:26, lat:46.361560, lng:48.073715, address:"ул. Боевая" },
-            { id:27, lat:46.357866, lng:48.095866, address:"Началовское шоссе" },
-            { id:28, lat:46.379639, lng:48.057549, address:"ул. Яблочкова" },
-            { id:29, lat:46.305851, lng:47.953204, address:"ул. Керченская" },
-            { id:30, lat:46.347583, lng:48.080794, address:"ул. Анри Барбюса" },
-            { id:31, lat:46.323739, lng:48.028377, address:"ул. Н. Островского" },
-            { id:32, lat:46.331145, lng:48.070798, address:"ул. Боевая" },
-            { id:33, lat:46.317729, lng:48.001026, address:"ул. Дзержинского" },
-            { id:34, lat:46.342801, lng:47.983919, address:"ул. Керченская" },
-            { id:35, lat:46.368612, lng:48.008951, address:"ул. Магистральная" },
-            { id:36, lat:46.291304, lng:47.998843, address:"ул. Чкалова" },
-            { id:37, lat:46.368099, lng:47.991583, address:"ул. Дзержинского" },
-            { id:38, lat:46.291613, lng:48.052991, address:"ул. Адм. Нахимова" },
-            { id:39, lat:46.390338, lng:47.999808, address:"ул. Яблочкова" },
-            { id:40, lat:46.382375, lng:48.002998, address:"ул. Рыбинская" },
-            { id:41, lat:46.384641, lng:48.004359, address:"ул. Рыбинская" },
-            { id:42, lat:46.342798, lng:48.118718, address:"Началовское шоссе" },
-            { id:43, lat:46.360813, lng:48.096719, address:"ул. Ленина" },
-            { id:44, lat:46.357825, lng:48.095799, address:"ул. Ленина" },
-            { id:45, lat:46.288427, lng:47.972630, address:"ул. Пирогова" },
-            { id:46, lat:46.345909, lng:47.982547, address:"ул. Керченская" },
-            { id:47, lat:46.287851, lng:47.972305, address:"ул. Пирогова" },
-            { id:48, lat:46.274458, lng:47.971886, address:"ул. Чкалова" },
-            { id:49, lat:46.304769, lng:47.952207, address:"ул. Керченская" },
-            { id:50, lat:46.347999, lng:48.091857, address:"Началовское шоссе" },
-            { id:51, lat:46.383345, lng:48.092816, address:"ул. Ленина" },
-            { id:52, lat:46.327749, lng:48.104688, address:"Началовское шоссе" },
-            { id:53, lat:46.346448, lng:48.109902, address:"Началовское шоссе" },
-            { id:54, lat:46.273419, lng:47.975994, address:"ул. Чкалова" },
-            { id:55, lat:46.387369, lng:48.100595, address:"Аэропортовское шоссе" }
+            { id:1, lat:46.337949, lng:48.041479, address:"ул. Адмирала Нахимова, 269Г" },{ id:2, lat:46.335345, lng:48.057393, address:"Аэропортовское шоссе, 5" },{ id:3, lat:46.318666, lng:48.039550, address:"ул. Н. Островского, 135" },{ id:4, lat:46.339393, lng:48.021766, address:"ул. Н. Островского, 148" },{ id:5, lat:46.337760, lng:48.064008, address:"ул. Яблочкова, 1В" },{ id:6, lat:46.316528, lng:48.043385, address:"ул. Рыбинская, 3Б" },{ id:7, lat:46.293659, lng:47.998928, address:"ул. Дзержинского, 167А" },{ id:8, lat:46.301697, lng:48.010770, address:"ул. Чкалова, 143" },{ id:9, lat:46.361533, lng:48.055770, address:"ул. Пирогова, 179" },{ id:10, lat:46.341199, lng:47.987743, address:"ул. Керченская, 61" },{ id:11, lat:46.333201, lng:48.066452, address:"ул. Магистральная, 29" },{ id:12, lat:46.316267, lng:48.036899, address:"ул. Ахшарумова, 90Б" },{ id:13, lat:46.344947, lng:47.983260, address:"ул. Боевая, 126" },{ id:14, lat:46.301592, lng:48.012474, address:"Аэропортовское шоссе, 13" },{ id:15, lat:46.358876, lng:48.055047, address:"ул. Рождественского, 2А" },{ id:16, lat:46.347117, lng:48.080026, address:"ул. Анри Барбюса, 34" },{ id:17, lat:46.359850, lng:48.063500, address:"ул. Вокзальная, 10" },{ id:18, lat:46.334814, lng:47.978805, address:"ул. Славянская, 1Д" },{ id:19, lat:46.344166, lng:47.985158, address:"ул. Автозаправочная, 8" },{ id:20, lat:46.302741, lng:48.047206, address:"Началовское шоссе, 11В" },{ id:21, lat:46.334203, lng:47.979685, address:"Началовское шоссе, 32" },{ id:22, lat:46.350226, lng:48.092899, address:"ул. Ленина, 1А" },{ id:23, lat:46.327230, lng:48.076807, address:"ул. Ленина, 45" },{ id:24, lat:46.372468, lng:48.082896, address:"Аэропортовское шоссе" },{ id:25, lat:46.276617, lng:47.969929, address:"ул. Чкалова" },{ id:26, lat:46.361560, lng:48.073715, address:"ул. Боевая" },{ id:27, lat:46.357866, lng:48.095866, address:"Началовское шоссе" },{ id:28, lat:46.379639, lng:48.057549, address:"ул. Яблочкова" },{ id:29, lat:46.305851, lng:47.953204, address:"ул. Керченская" },{ id:30, lat:46.347583, lng:48.080794, address:"ул. Анри Барбюса" },{ id:31, lat:46.323739, lng:48.028377, address:"ул. Н. Островского" },{ id:32, lat:46.331145, lng:48.070798, address:"ул. Боевая" },{ id:33, lat:46.317729, lng:48.001026, address:"ул. Дзержинского" },{ id:34, lat:46.342801, lng:47.983919, address:"ул. Керченская" },{ id:35, lat:46.368612, lng:48.008951, address:"ул. Магистральная" },{ id:36, lat:46.291304, lng:47.998843, address:"ул. Чкалова" },{ id:37, lat:46.368099, lng:47.991583, address:"ул. Дзержинского" },{ id:38, lat:46.291613, lng:48.052991, address:"ул. Адм. Нахимова" },{ id:39, lat:46.390338, lng:47.999808, address:"ул. Яблочкова" },{ id:40, lat:46.382375, lng:48.002998, address:"ул. Рыбинская" },{ id:41, lat:46.384641, lng:48.004359, address:"ул. Рыбинская" },{ id:42, lat:46.342798, lng:48.118718, address:"Началовское шоссе" },{ id:43, lat:46.360813, lng:48.096719, address:"ул. Ленина" },{ id:44, lat:46.357825, lng:48.095799, address:"ул. Ленина" },{ id:45, lat:46.288427, lng:47.972630, address:"ул. Пирогова" },{ id:46, lat:46.345909, lng:47.982547, address:"ул. Керченская" },{ id:47, lat:46.287851, lng:47.972305, address:"ул. Пирогова" },{ id:48, lat:46.274458, lng:47.971886, address:"ул. Чкалова" },{ id:49, lat:46.304769, lng:47.952207, address:"ул. Керченская" },{ id:50, lat:46.347999, lng:48.091857, address:"Началовское шоссе" },{ id:51, lat:46.383345, lng:48.092816, address:"ул. Ленина" },{ id:52, lat:46.327749, lng:48.104688, address:"Началовское шоссе" },{ id:53, lat:46.346448, lng:48.109902, address:"Началовское шоссе" },{ id:54, lat:46.273419, lng:47.975994, address:"ул. Чкалова" },{ id:55, lat:46.387369, lng:48.100595, address:"Аэропортовское шоссе" }
         ];
 
-        function initData() {
-            let data = localStorage.getItem(STORAGE_KEY);
-            if (!data) {
-                const initial = {};
-                DEFAULT_STATIONS.forEach(s => { initial[s.id] = {...s, comments:[]}; });
-                localStorage.setItem(STORAGE_KEY, JSON.stringify(initial));
-                return initial;
-            }
-            const saved = JSON.parse(data);
-            DEFAULT_STATIONS.forEach(s => {
-                if (!saved[s.id]) saved[s.id] = {...s, comments:[]};
-                else { saved[s.id].lat = s.lat; saved[s.id].lng = s.lng; saved[s.id].address = s.address; }
-            });
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(saved));
-            return saved;
-        }
-        function saveData(data) { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); }
+        let stationsData, selectedStationId=null, selectedFuel=null, selectedQueue=null, selectedFuelTypes=new Set(), currentFilter='all', isSubscribed=false;
 
-        let stationsData = initData();
-        let selectedStationId = null, selectedFuel = null, selectedQueue = null;
-        let selectedFuelTypes = new Set();
-        let currentFilter = 'all';
+        function initData() { let d=localStorage.getItem(STORAGE_KEY); if(!d){ const i={}; DEFAULT_STATIONS.forEach(s=>i[s.id]={...s,comments:[]}); localStorage.setItem(STORAGE_KEY,JSON.stringify(i)); return i; } const s=JSON.parse(d); DEFAULT_STATIONS.forEach(x=>{ if(!s[x.id]) s[x.id]={...x,comments:[]}; else Object.assign(s[x.id],x); }); localStorage.setItem(STORAGE_KEY,JSON.stringify(s)); return s; }
+        function saveData(d) { localStorage.setItem(STORAGE_KEY,JSON.stringify(d)); }
 
-        // ==================== ФИЛЬТР СВОРАЧИВАНИЕ ====================
-        function toggleFilter() {
-            document.getElementById('filterWrapper').classList.toggle('collapsed');
-        }
+        function init2GIS() { DG.then(()=>{ map=DG.map('map',{center:[46.355,48.045],zoom:12,zoomControl:false,fullscreenControl:false,preferCanvas:true,geolocation:false,dragging:true,scrollWheelZoom:true,touchZoom:true,doubleClickZoom:true}); DG.control.zoom({position:'bottomright'}).addTo(map); markersLayer=DG.featureGroup().addTo(map); loadCommentsFromServer().then(()=>renderMarkers()); }); }
 
-        // ==================== СИНХРОНИЗАЦИЯ ====================
-        async function loadCommentsFromServer() {
-            try {
-                const r = await fetch(`${API_BASE}/comments`, { mode: 'cors' });
-                if (!r.ok) throw new Error('Network');
-                const server = await r.json();
-                Object.entries(server).forEach(([sid, comments]) => {
-                    if (stationsData[sid]) {
-                        const local = stationsData[sid].comments || [];
-                        const serverTs = new Set(comments.map(c => c.timestamp));
-                        stationsData[sid].comments = [...comments, ...local.filter(c => !serverTs.has(c.timestamp))]
-                            .sort((a,b) => b.timestamp - a.timestamp).slice(0, 200);
-                    }
-                });
-                saveData(stationsData);
-                document.getElementById('syncDot').style.background = '#34c759';
-            } catch(e) {
-                document.getElementById('syncDot').style.background = '#ff9500';
-            }
-        }
-        async function submitToServer(sid, comment) {
-            try {
-                await fetch(`${API_BASE}/comments`, {
-                    method: 'POST', mode: 'cors',
-                    headers: {'Content-Type':'application/json'},
-                    body: JSON.stringify({station_id:sid, comment})
-                });
-                return true;
-            } catch { return false; }
-        }
+        function toggleFilter() { document.getElementById('filterWrapper').classList.toggle('collapsed'); }
+        function toggleTheme() { const c=document.documentElement.getAttribute('data-theme')||'light',n=c==='light'?'dark':'light'; document.documentElement.setAttribute('data-theme',n); localStorage.setItem(THEME_KEY,n); document.getElementById('themeToggle').textContent=n==='dark'?'☀️':'🌙'; }
+        function getUserId() { return window.Telegram?.WebApp?.initDataUnsafe?.user?.id?.toString()||null; }
 
-        function initTheme() {
-            const s = localStorage.getItem(THEME_KEY) || 'light';
-            document.documentElement.setAttribute('data-theme', s);
-            document.getElementById('themeToggle').textContent = s === 'dark' ? '☀️' : '🌙';
-        }
-        function toggleTheme() {
-            const c = document.documentElement.getAttribute('data-theme') || 'light';
-            const n = c === 'light' ? 'dark' : 'light';
-            document.documentElement.setAttribute('data-theme', n);
-            localStorage.setItem(THEME_KEY, n);
-            document.getElementById('themeToggle').textContent = n === 'dark' ? '☀️' : '🌙';
-        }
+        async function checkSubscription(sid) { const uid=getUserId(); if(!uid) return; try{ const r=await fetch(`${API_BASE}/subscriptions?user_id=${uid}`); const d=await r.json(); isSubscribed=d[sid]===true; updateSubBtn(); }catch{} }
+        function updateSubBtn() { const b=document.getElementById('subscribeBtn'); if(b) b.textContent=isSubscribed?'🔕 Отписаться':'🔔 Подписаться'; }
+        async function toggleSubscription() { const uid=getUserId(); if(!uid||!selectedStationId) return; const ep=isSubscribed?'unsubscribe':'subscribe'; try{ const r=await fetch(`${API_BASE}/${ep}`,{method:'POST',mode:'cors',headers:{'Content-Type':'application/json'},body:JSON.stringify({station_id:selectedStationId.toString(),user_id:uid})}); if(r.ok){ isSubscribed=!isSubscribed; updateSubBtn(); } }catch(e){ console.log(e); } }
 
-        function getFuelProbability(c, type) {
-            const filtered = c.filter(x => x.hasFuel && x.fuelTypes && x.fuelTypes.includes(type));
-            if (!filtered.length) return null;
-            const recent = filtered.filter(x => (Date.now() - x.timestamp) < 4*3600000);
-            const pool = recent.length ? recent : filtered;
-            return {probability: pool.length / Math.max(1, c.filter(x => x.hasFuel).length), total: pool.length};
-        }
-        function getAvgQueue(c) {
-            const withCars = c.filter(x => x.hasFuel && x.hasQueue && x.carsCount > 0);
-            if (!withCars.length) return null;
-            const avg = withCars.reduce((s,x) => s + x.carsCount, 0) / withCars.length;
-            return {avg: Math.round(avg*10)/10, total: withCars.length};
-        }
-        function getStatus(sid) {
-            const s = stationsData[sid];
-            if (!s || !s.comments.length) return 'no_data';
-            const hasFuelComments = s.comments.filter(c => c.hasFuel);
-            if (!hasFuelComments.length) return 'no_fuel';
-            const latest = s.comments.reduce((a,b)=>a.timestamp>b.timestamp?a:b);
-            if ((Date.now()-latest.timestamp) > 2*3600000) return 'outdated';
-            return 'has_fuel';
-        }
-        function getColor(sid) {
-            const st = getStatus(sid);
-            if (st==='has_fuel') return '#34c759';
-            if (st==='no_fuel') return '#ff3b30';
-            if (st==='outdated') return '#ffcc00';
-            return '#8e8e93';
-        }
-        function getBestFuelType(sid) {
-            const s = stationsData[sid];
-            if (!s || !s.comments.length) return null;
-            const fuelComments = s.comments.filter(c => c.hasFuel && c.fuelTypes);
-            if (!fuelComments.length) return '#34c759';
-            const counts = {92:0, 95:0, 100:0, dt:0};
-            fuelComments.forEach(c => c.fuelTypes.forEach(t => { if (counts[t] !== undefined) counts[t]++; }));
-            const max = Math.max(...Object.values(counts));
-            if (max === 0) return '#34c759';
-            if (counts[92] === max) return '#34c759';
-            if (counts[95] === max) return '#ff9500';
-            if (counts[100] === max) return '#ff3b30';
-            return '#007aff';
-        }
+        async function loadCommentsFromServer() { try{ const r=await fetch(`${API_BASE}/comments`,{mode:'cors'}); if(!r.ok) throw new Error(''); const srv=await r.json(); Object.entries(srv).forEach(([sid,cmts])=>{ if(stationsData[sid]){ const loc=stationsData[sid].comments||[],ts=new Set(cmts.map(c=>c.timestamp)); stationsData[sid].comments=[...cmts,...loc.filter(c=>!ts.has(c.timestamp))].sort((a,b)=>b.timestamp-a.timestamp).slice(0,200); } }); saveData(stationsData); document.getElementById('syncDot').style.background='#34c759'; }catch(e){ document.getElementById('syncDot').style.background='#ff9500'; } }
+        async function submitToServer(sid,cmt) { try{ await fetch(`${API_BASE}/comments`,{method:'POST',mode:'cors',headers:{'Content-Type':'application/json'},body:JSON.stringify({station_id:sid,comment:cmt})}); return true; }catch{ return false; } }
 
-        function renderMarkers() {
-            if (!markersLayer) return;
-            markersLayer.clearLayers();
-            Object.values(stationsData).forEach(s => {
-                const st = getStatus(s.id);
-                if (currentFilter==='has_fuel' && st!=='has_fuel') return;
-                if (currentFilter==='no_fuel' && st!=='no_fuel') return;
-                if (currentFilter.startsWith('fuel_')) {
-                    const type = currentFilter.replace('fuel_','');
-                    const hasType = s.comments.some(c => c.hasFuel && c.fuelTypes && c.fuelTypes.includes(type));
-                    if (!hasType) return;
-                }
+        function getFuelProb(c,type) { const f=c.filter(x=>x.hasFuel&&x.fuelTypes&&x.fuelTypes.includes(type)); if(!f.length) return null; const recent=f.filter(x=>(Date.now()-x.timestamp)<14400000),pool=recent.length?recent:f; return {prob:pool.length/Math.max(1,c.filter(x=>x.hasFuel).length),total:pool.length}; }
+        function getAvgQ(c) { const w=c.filter(x=>x.hasFuel&&x.hasQueue&&x.carsCount>0); if(!w.length) return null; return {avg:Math.round(w.reduce((s,x)=>s+x.carsCount,0)/w.length*10)/10,total:w.length}; }
+        function getStatus(sid) { const s=stationsData[sid]; if(!s||!s.comments.length) return 'no_data'; if(!s.comments.some(c=>c.hasFuel)) return 'no_fuel'; const lt=s.comments.reduce((a,b)=>a.timestamp>b.timestamp?a:b); if((Date.now()-lt.timestamp)>7200000) return 'outdated'; return 'has_fuel'; }
+        function getColor(sid) { const st=getStatus(sid); return st==='has_fuel'?'#34c759':st==='no_fuel'?'#ff3b30':st==='outdated'?'#ffcc00':'#8e8e93'; }
+        function getBestFuel(sid) { const s=stationsData[sid]; if(!s) return '#8e8e93'; const fc=s.comments.filter(c=>c.hasFuel&&c.fuelTypes); if(!fc.length) return '#34c759'; const cnt={92:0,95:0,100:0,dt:0}; fc.forEach(c=>c.fuelTypes.forEach(t=>{if(cnt[t]!==undefined)cnt[t]++})); const mx=Math.max(...Object.values(cnt)); if(mx===0) return '#34c759'; return cnt[92]===mx?'#34c759':cnt[95]===mx?'#ff9500':cnt[100]===mx?'#ff3b30':'#007aff'; }
 
-                const color = currentFilter.startsWith('fuel_') ? getBestFuelType(s.id) : getColor(s.id);
-                const fp = getFuelProbability(s.comments, '92');
-                const aq = getAvgQueue(s.comments);
-                const hasComments = s.comments.length > 0;
-                
-                const marker = DG.marker([s.lat, s.lng], {
-                    icon: DG.icon({
-                        iconUrl: createCircleIcon(color, hasComments ? 14 : 10),
-                        iconSize: [hasComments ? 28 : 20, hasComments ? 28 : 20],
-                        iconAnchor: [hasComments ? 14 : 10, hasComments ? 14 : 10]
-                    })
-                });
-                
-                let popup = `<b>${s.address}</b>`;
-                if (fp) popup += `<br><br>⛽ АИ-92: <b>${Math.round(fp.probability*100)}%</b>`;
-                const fp95 = getFuelProbability(s.comments, '95');
-                if (fp95) popup += `<br>⛽ АИ-95: <b>${Math.round(fp95.probability*100)}%</b>`;
-                const fp100 = getFuelProbability(s.comments, '100');
-                if (fp100) popup += `<br>⛽ АИ-100: <b>${Math.round(fp100.probability*100)}%</b>`;
-                const fpdt = getFuelProbability(s.comments, 'dt');
-                if (fpdt) popup += `<br>⛽ ДТ: <b>${Math.round(fpdt.probability*100)}%</b>`;
-                if (!fp && !fp95 && !fp100 && !fpdt) popup += `<br><br><i>Нет данных</i>`;
-                if (aq) popup += `<br>🚗 Очередь: ~<b>${aq.avg}</b> машин`;
-                popup += `<br><small>▶ Нажмите для деталей</small>`;
-                
-                marker.bindPopup(popup);
-                marker.on('click', () => openPanel(s.id));
-                markersLayer.addLayer(marker);
-            });
-            updateCounts();
-        }
+        function renderMarkers() { if(!markersLayer) return; markersLayer.clearLayers(); Object.values(stationsData).forEach(s=>{ const st=getStatus(s.id); if(currentFilter==='has_fuel'&&st!=='has_fuel') return; if(currentFilter==='no_fuel'&&st!=='no_fuel') return; if(currentFilter.startsWith('fuel_')){ if(!s.comments.some(c=>c.hasFuel&&c.fuelTypes&&c.fuelTypes.includes(currentFilter.replace('fuel_','')))) return; } const color=currentFilter.startsWith('fuel_')?getBestFuel(s.id):getColor(s.id),hc=s.comments.length>0; const mk=DG.marker([s.lat,s.lng],{icon:DG.icon({iconUrl:ci(color,hc?14:10),iconSize:[hc?28:20,hc?28:20],iconAnchor:[hc?14:10,hc?14:10]})}); let pp=`<b>${s.address}</b>`; ['92','95','100','dt'].forEach(t=>{const fp=getFuelProb(s.comments,t); if(fp) pp+=`<br>⛽ ${t.toUpperCase()}: <b>${Math.round(fp.prob*100)}%</b>`;}); const aq=getAvgQ(s.comments); if(aq) pp+=`<br>🚗 Очередь: ~<b>${aq.avg}</b> машин`; pp+=`<br><small>▶ Нажмите для отзыва</small>`; mk.bindPopup(pp); mk.on('click',()=>{ map.closePopup(); openPanel(s.id); }); markersLayer.addLayer(mk); }); updateCounts(); }
+        function ci(c,r) { return 'data:image/svg+xml,'+encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="${r*2}" height="${r*2}"><circle cx="${r}" cy="${r}" r="${r-1}" fill="${c}" stroke="#fff" stroke-width="2"/></svg>`); }
+        function setFilter(f,btn) { currentFilter=f; document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); renderMarkers(); }
+        function updateCounts() { let c={all:0,has_fuel:0,no_fuel:0,f92:0,f95:0,f100:0,fdt:0}; Object.values(stationsData).forEach(s=>{c.all++; const st=getStatus(s.id); if(st==='has_fuel')c.has_fuel++; else if(st==='no_fuel')c.no_fuel++; if(s.comments.some(x=>x.hasFuel&&x.fuelTypes&&x.fuelTypes.includes('92')))c.f92++; if(s.comments.some(x=>x.hasFuel&&x.fuelTypes&&x.fuelTypes.includes('95')))c.f95++; if(s.comments.some(x=>x.hasFuel&&x.fuelTypes&&x.fuelTypes.includes('100')))c.f100++; if(s.comments.some(x=>x.hasFuel&&x.fuelTypes&&x.fuelTypes.includes('dt')))c.fdt++; }); document.getElementById('countAll').textContent=c.all; document.getElementById('countHasFuel').textContent=c.has_fuel; document.getElementById('countNoFuel').textContent=c.no_fuel; document.getElementById('countFuel92').textContent=c.f92; document.getElementById('countFuel95').textContent=c.f95; document.getElementById('countFuel100').textContent=c.f100; document.getElementById('countFuelDT').textContent=c.fdt; }
+        function openPanel(sid) { selectedStationId=sid; document.getElementById('stationName').textContent=stationsData[sid].address; resetForm(); updateStats(); renderComments(); updateSubmit(); checkSubscription(sid); document.getElementById('commentPanel').classList.add('active'); }
+        function closePanel() { document.getElementById('commentPanel').classList.remove('active'); selectedStationId=null; resetForm(); }
+        function resetForm() { selectedFuel=null; selectedQueue=null; selectedFuelTypes.clear(); document.querySelectorAll('#fuelBtns .btn,#queueBtns .btn,#fuelTypeBtns .btn').forEach(b=>b.classList.remove('selected')); document.getElementById('fuelTypeGroup').classList.remove('active'); document.getElementById('queueGroup').classList.remove('active'); document.getElementById('carsGroup').classList.remove('active'); document.getElementById('carsCount').value=''; }
+        function selectBtn(btn,type) { btn.parentElement.querySelectorAll('.btn').forEach(b=>b.classList.remove('selected')); btn.classList.add('selected'); if(type==='fuel'){ selectedFuel=btn.dataset.value; const ftg=document.getElementById('fuelTypeGroup'); if(selectedFuel==='yes') ftg.classList.add('active'); else{ftg.classList.remove('active');document.getElementById('queueGroup').classList.remove('active');document.getElementById('carsGroup').classList.remove('active');selectedQueue=null;selectedFuelTypes.clear();} }else{ selectedQueue=btn.dataset.value; const cg=document.getElementById('carsGroup'); if(selectedQueue==='yes'){cg.classList.add('active');document.getElementById('carsCount').focus();}else{cg.classList.remove('active');document.getElementById('carsCount').value='';} } updateSubmit(); }
+        function selectFuelType(btn) { const v=btn.dataset.value; if(btn.classList.contains('selected')){btn.classList.remove('selected');selectedFuelTypes.delete(v);}else{btn.classList.add('selected');selectedFuelTypes.add(v);} const qg=document.getElementById('queueGroup'); if(selectedFuelTypes.size>0) qg.classList.add('active'); else qg.classList.remove('active'); updateSubmit(); }
+        function updateSubmit() { document.getElementById('submitBtn').disabled = !(selectedFuel==='yes'?selectedFuelTypes.size>0:selectedFuel==='no'); }
+        function updateStats() { if(!selectedStationId) return; const c=stationsData[selectedStationId].comments; ['92','95','100','dt'].forEach(t=>{const fp=getFuelProb(c,t);document.getElementById('fuel'+t).textContent=fp?Math.round(fp.prob*100)+'%':'--%';}); const aq=getAvgQ(c);document.getElementById('avgQueue').textContent=aq?'~'+aq.avg+' маш.':'--'; }
+        function renderComments() { if(!selectedStationId) return; const cmts=stationsData[selectedStationId].comments,list=document.getElementById('commentsList'); if(!cmts.length){list.innerHTML='<div style="color:var(--text-secondary);text-align:center;font-size:11px;padding:6px;">Нет отзывов</div>';return;} list.innerHTML=[...cmts].sort((a,b)=>b.timestamp-a.timestamp).slice(0,20).map(c=>{const t=new Date(c.timestamp),hours=(Date.now()-c.timestamp)/3600000,fresh=hours<1; let b=`<span class="badge ${c.hasFuel?'badge-fuel':'badge-nofuel'}">${c.hasFuel?'✅':'❌'}</span>`; if(c.hasFuel&&c.fuelTypes) c.fuelTypes.forEach(f=>{b+=`<span class="badge badge-${f}">${f.toUpperCase()}</span>`;}); if(c.hasFuel&&c.hasQueue) b+=`<span class="badge badge-queue">🚗</span>`; if(c.hasQueue&&c.carsCount>0) b+=`<span class="badge badge-cars">${c.carsCount} маш.</span>`; const timeStr=fresh?'🟢 Менее часа':`🔴 ${Math.floor(hours)} ч. назад`; return`<div class="comment-item ${fresh?'fresh':'old'}">${b}<span class="comment-time">${timeStr}</span></div>`; }).join(''); }
+        async function submitComment() { if(!selectedStationId) return; if(selectedFuel==='no'){ const cmt={hasFuel:false,hasQueue:false,fuelTypes:[],carsCount:0,timestamp:Date.now(),userId:getUserId()||'anon'}; stationsData[selectedStationId].comments.push(cmt); saveData(stationsData); await submitToServer(selectedStationId,cmt); updateStats(); renderComments(); renderMarkers(); resetForm(); updateSubmit(); setTimeout(loadCommentsFromServer,1500); return; } if(selectedFuelTypes.size===0) return; const cmt={hasFuel:true,hasQueue:selectedQueue==='yes',fuelTypes:[...selectedFuelTypes],carsCount:(selectedQueue==='yes'?parseInt(document.getElementById('carsCount').value)||0:0),timestamp:Date.now(),userId:getUserId()||'anon'}; stationsData[selectedStationId].comments.push(cmt); saveData(stationsData); await submitToServer(selectedStationId,cmt); updateStats(); renderComments(); renderMarkers(); resetForm(); updateSubmit(); setTimeout(loadCommentsFromServer,1500); }
 
-        function createCircleIcon(color, radius) {
-            const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${radius*2}" height="${radius*2}">
-                <circle cx="${radius}" cy="${radius}" r="${radius-1}" fill="${color}" stroke="#fff" stroke-width="2"/>
-            </svg>`;
-            return 'data:image/svg+xml,' + encodeURIComponent(svg);
-        }
-
-        function setFilter(f, btn) {
-            currentFilter = f;
-            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-            if (btn) btn.classList.add('active');
-            else document.querySelector(`[data-filter="${f}"]`)?.classList.add('active');
-            renderMarkers();
-        }
-        function updateCounts() {
-            let c = {all:0, has_fuel:0, no_fuel:0, fuel_92:0, fuel_95:0, fuel_100:0, fuel_dt:0};
-            Object.values(stationsData).forEach(s => {
-                c.all++;
-                const st = getStatus(s.id);
-                if(st==='has_fuel') c.has_fuel++;
-                else if(st==='no_fuel') c.no_fuel++;
-                if(s.comments.some(x => x.hasFuel && x.fuelTypes && x.fuelTypes.includes('92'))) c.fuel_92++;
-                if(s.comments.some(x => x.hasFuel && x.fuelTypes && x.fuelTypes.includes('95'))) c.fuel_95++;
-                if(s.comments.some(x => x.hasFuel && x.fuelTypes && x.fuelTypes.includes('100'))) c.fuel_100++;
-                if(s.comments.some(x => x.hasFuel && x.fuelTypes && x.fuelTypes.includes('dt'))) c.fuel_dt++;
-            });
-            document.getElementById('countAll').textContent = c.all;
-            document.getElementById('countHasFuel').textContent = c.has_fuel;
-            document.getElementById('countNoFuel').textContent = c.no_fuel;
-            document.getElementById('countFuel92').textContent = c.fuel_92;
-            document.getElementById('countFuel95').textContent = c.fuel_95;
-            document.getElementById('countFuel100').textContent = c.fuel_100;
-            document.getElementById('countFuelDT').textContent = c.fuel_dt;
-        }
-
-        function openPanel(sid) {
-            selectedStationId = sid;
-            document.getElementById('stationName').textContent = stationsData[sid].address;
-            resetForm(); updateStats(); renderComments(); updateSubmit();
-            document.getElementById('commentPanel').classList.add('active');
-        }
-        function closePanel() {
-            document.getElementById('commentPanel').classList.remove('active');
-            selectedStationId = null; resetForm();
-        }
-        function resetForm() {
-            selectedFuel = null; selectedQueue = null; selectedFuelTypes.clear();
-            document.querySelectorAll('#fuelBtns .btn,#queueBtns .btn,#fuelTypeBtns .btn').forEach(b=>b.classList.remove('selected'));
-            document.getElementById('fuelTypeGroup').classList.remove('active');
-            document.getElementById('queueGroup').classList.remove('active');
-            document.getElementById('carsGroup').classList.remove('active');
-            document.getElementById('carsCount').value = '';
-        }
-        function selectBtn(btn, type) {
-            btn.parentElement.querySelectorAll('.btn').forEach(b=>b.classList.remove('selected'));
-            btn.classList.add('selected');
-            if (type==='fuel') {
-                selectedFuel = btn.dataset.value;
-                const ftg = document.getElementById('fuelTypeGroup');
-                if (selectedFuel==='yes') ftg.classList.add('active');
-                else { ftg.classList.remove('active'); document.getElementById('queueGroup').classList.remove('active'); document.getElementById('carsGroup').classList.remove('active'); selectedQueue=null; selectedFuelTypes.clear(); }
-            } else {
-                selectedQueue = btn.dataset.value;
-                const cg = document.getElementById('carsGroup');
-                if (selectedQueue==='yes') { cg.classList.add('active'); document.getElementById('carsCount').focus(); }
-                else { cg.classList.remove('active'); document.getElementById('carsCount').value=''; }
-            }
-            updateSubmit();
-        }
-        function selectFuelType(btn) {
-            const val = btn.dataset.value;
-            if (btn.classList.contains('selected')) {
-                btn.classList.remove('selected');
-                selectedFuelTypes.delete(val);
-            } else {
-                btn.classList.add('selected');
-                selectedFuelTypes.add(val);
-            }
-            const qg = document.getElementById('queueGroup');
-            if (selectedFuelTypes.size > 0) qg.classList.add('active');
-            else qg.classList.remove('active');
-            updateSubmit();
-        }
-        function updateSubmit() {
-            const ok = selectedFuel === 'yes' ? selectedFuelTypes.size > 0 : selectedFuel === 'no';
-            document.getElementById('submitBtn').disabled = !ok;
-        }
-        function updateStats() {
-            if (!selectedStationId) return;
-            const c = stationsData[selectedStationId].comments;
-            ['92','95','100','dt'].forEach(t => {
-                const fp = getFuelProbability(c, t);
-                document.getElementById('fuel'+t.toUpperCase()).textContent = fp ? Math.round(fp.probability*100)+'%' : '--%';
-            });
-            const aq = getAvgQueue(c);
-            document.getElementById('avgQueue').textContent = aq ? '~'+aq.avg+' маш.' : '--';
-        }
-        function renderComments() {
-            if (!selectedStationId) return;
-            const comments = stationsData[selectedStationId].comments;
-            const list = document.getElementById('commentsList');
-            if (!comments.length) { list.innerHTML = '<div style="color:var(--text-secondary);text-align:center;font-size:11px;padding:6px;">Нет отзывов</div>'; return; }
-            list.innerHTML = [...comments].sort((a,b)=>b.timestamp-a.timestamp).slice(0,20).map(c => {
-                const t = new Date(c.timestamp);
-                let badges = `<span class="badge ${c.hasFuel?'badge-fuel':'badge-nofuel'}">${c.hasFuel?'✅ Есть':'❌ Нет'}</span>`;
-                if (c.hasFuel && c.fuelTypes) {
-                    c.fuelTypes.forEach(ft => {
-                        badges += `<span class="badge badge-${ft}">${ft.toUpperCase()}</span>`;
-                    });
-                }
-                if (c.hasFuel && c.hasQueue) badges += `<span class="badge badge-queue">🚗 Очередь</span>`;
-                if (c.hasQueue && c.carsCount > 0) badges += `<span class="badge badge-cars">${c.carsCount} маш.</span>`;
-                if (c.hasFuel && !c.hasQueue) badges += `<span class="badge badge-fuel">✅ Свободно</span>`;
-                return `<div class="comment-item">${badges}<span class="comment-time">${t.toLocaleDateString('ru-RU',{day:'2-digit',month:'2-digit'})} ${t.toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'})}</span></div>`;
-            }).join('');
-        }
-        async function submitComment() {
-            if (!selectedStationId) return;
-            if (selectedFuel === 'no') {
-                const comment = {
-                    hasFuel: false, hasQueue: false, fuelTypes: [],
-                    carsCount: 0, timestamp: Date.now(),
-                    userId: window.Telegram?.WebApp?.initDataUnsafe?.user?.id?.toString() || 'anon'
-                };
-                stationsData[selectedStationId].comments.push(comment);
-                saveData(stationsData);
-                const synced = await submitToServer(selectedStationId, comment);
-                updateStats(); renderComments(); renderMarkers(); resetForm(); updateSubmit();
-                if (synced) setTimeout(loadCommentsFromServer, 1500);
-                return;
-            }
-            if (selectedFuelTypes.size === 0) return;
-            const carsVal = parseInt(document.getElementById('carsCount').value) || 0;
-            const comment = {
-                hasFuel: true,
-                hasQueue: selectedQueue === 'yes',
-                fuelTypes: [...selectedFuelTypes],
-                carsCount: (selectedQueue === 'yes') ? carsVal : 0,
-                timestamp: Date.now(),
-                userId: window.Telegram?.WebApp?.initDataUnsafe?.user?.id?.toString() || 'anon'
-            };
-            stationsData[selectedStationId].comments.push(comment);
-            saveData(stationsData);
-            const synced = await submitToServer(selectedStationId, comment);
-            updateStats(); renderComments(); renderMarkers(); resetForm(); updateSubmit();
-            if (synced) setTimeout(loadCommentsFromServer, 1500);
-        }
-
-        if (window.Telegram?.WebApp) {
-            const tg = window.Telegram.WebApp; tg.ready(); tg.expand();
-            if (tg.themeParams.bg_color && !localStorage.getItem(THEME_KEY)) {
-                if (!['#ffffff','#fff'].includes(tg.themeParams.bg_color.toLowerCase())) {
-                    document.documentElement.setAttribute('data-theme','dark');
-                    document.getElementById('themeToggle').textContent = '☀️';
-                }
-            }
-        }
-
-        initTheme();
-        init2GIS();
-        setInterval(loadCommentsFromServer, 30000);
-        setInterval(renderMarkers, 60000);
+        (function(){ stationsData=initData(); const s=localStorage.getItem(THEME_KEY)||'light'; document.documentElement.setAttribute('data-theme',s); document.getElementById('themeToggle').textContent=s==='dark'?'☀️':'🌙'; if(window.Telegram?.WebApp){ const tg=window.Telegram.WebApp; tg.ready(); tg.expand(); if(tg.themeParams.bg_color&&!localStorage.getItem(THEME_KEY)&&!['#ffffff','#fff'].includes(tg.themeParams.bg_color.toLowerCase())){ document.documentElement.setAttribute('data-theme','dark'); document.getElementById('themeToggle').textContent='☀️'; } } init2GIS(); setInterval(loadCommentsFromServer,30000); setInterval(renderMarkers,60000); })();
     </script>
 </body>
 </html>
