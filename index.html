@@ -860,7 +860,7 @@
                 userId: window.Telegram?.WebApp?.initDataUnsafe?.user?.id?.toString() || 'anon'
             };
             // Комментарий с отметкой "бензин есть" уходит на сервер, который
-            // сам разошлёт уведомления всем, кто подписан на эту АЗС в боте. 11
+            // сам разошлёт уведомления всем, кто подписан на эту АЗС в боте. 
             stationsData[selectedStationId].comments.push(comment);
             saveData(stationsData);
             const synced = await submitToServer(selectedStationId, comment);
