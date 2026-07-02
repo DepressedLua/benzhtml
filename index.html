@@ -145,12 +145,24 @@
         @keyframes slideUp { from { transform: translateY(15px); opacity: 0; } }
         .panel-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 8px; gap: 8px; }
         .panel-info h3 { font-size: 13px; font-weight: 700; }
+        .panel-actions { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
         .close-btn {
             background: var(--surface2); border: none; width: 26px; height: 26px;
             border-radius: 13px; display: flex; align-items: center; justify-content: center;
             cursor: pointer; font-size: 13px; color: var(--text); flex-shrink: 0;
         }
         .close-btn:active { background: var(--border); }
+        .subscribe-btn {
+            background: var(--surface2); border: 1.5px solid var(--btn-border);
+            height: 26px; padding: 0 10px; border-radius: 13px;
+            display: flex; align-items: center; justify-content: center; gap: 4px;
+            cursor: pointer; font-size: 11px; font-weight: 700; color: var(--text);
+            white-space: nowrap; transition: all 0.12s;
+        }
+        .subscribe-btn:active { transform: scale(0.96); }
+        .subscribe-btn.subscribed {
+            background: var(--btn-selected-bg); border-color: var(--btn-selected-border); color: var(--btn-selected-text);
+        }
         .stats-row { display: flex; gap: 6px; margin-bottom: 8px; flex-wrap: wrap; }
         .stat-chip {
             background: var(--surface2); padding: 7px 10px; border-radius: var(--radius-sm);
@@ -213,6 +225,7 @@
             .filter-btn { font-size: 10px; padding: 5px 7px; }
             .stat-chip .value { font-size: 14px; }
             .comment-panel { padding: 10px 12px; right: 8px; left: 8px; }
+            .subscribe-btn { font-size: 10px; padding: 0 7px; }
         }
         .comments-list::-webkit-scrollbar { width: 2px; }
         .comments-list::-webkit-scrollbar-track { background: transparent; }
@@ -266,7 +279,10 @@
         <div class="comment-panel" id="commentPanel">
             <div class="panel-header">
                 <div class="panel-info"><h3 id="stationName">АЗС</h3></div>
-                <button class="close-btn" onclick="closePanel()">✕</button>
+                <div class="panel-actions">
+                    <button class="subscribe-btn" id="subscribeBtn" onclick="subscribeToStation()" title="Получить уведомление в Telegram, когда на этой АЗС появится бензин">🔔 Уведомлять</button>
+                    <button class="close-btn" onclick="closePanel()">✕</button>
+                </div>
             </div>
             <div class="stats-row">
                 <div class="stat-chip"><div class="label">92</div><div class="value" id="fuel92">--%</div></div>
@@ -330,6 +346,7 @@
 
         const STORAGE_KEY = 'astrakhan_fuel_data_v8';
         const THEME_KEY = 'astrakhan_fuel_theme';
+        const SUBS_KEY = 'astrakhan_fuel_local_subs';
         const API_BASE = 'https://benztg-production.up.railway.app/api';
 
         const DEFAULT_STATIONS = [
@@ -412,10 +429,59 @@
         let selectedStationId = null, selectedFuel = null, selectedQueue = null;
         let selectedFuelTypes = new Set();
         let currentFilter = 'all';
+        let botUsername = null;
 
         // ==================== ФИЛЬТР СВОРАЧИВАНИЕ ====================
         function toggleFilter() {
             document.getElementById('filterWrapper').classList.toggle('collapsed');
+        }
+
+        // ==================== УВЕДОМЛЕНИЯ ЧЕРЕЗ TG БОТА ====================
+        async function fetchBotInfo() {
+            try {
+                const r = await fetch(`${API_BASE}/bot-info`, { mode: 'cors' });
+                if (!r.ok) throw new Error('bot-info unavailable');
+                const d = await r.json();
+                botUsername = d.username;
+            } catch(e) {
+                botUsername = null;
+            }
+        }
+        function getLocalSubs() {
+            try { return JSON.parse(localStorage.getItem(SUBS_KEY) || '[]'); }
+            catch { return []; }
+        }
+        function markLocalSub(sid) {
+            const subs = getLocalSubs();
+            if (!subs.includes(String(sid))) {
+                subs.push(String(sid));
+                localStorage.setItem(SUBS_KEY, JSON.stringify(subs));
+            }
+        }
+        function updateSubscribeButton() {
+            const btn = document.getElementById('subscribeBtn');
+            if (!selectedStationId) return;
+            const subscribed = getLocalSubs().includes(String(selectedStationId));
+            btn.classList.toggle('subscribed', subscribed);
+            btn.textContent = subscribed ? '🔔 Вы подписаны' : '🔔 Уведомлять';
+        }
+        async function subscribeToStation() {
+            if (!selectedStationId) return;
+            if (!botUsername) await fetchBotInfo();
+            if (!botUsername) {
+                alert('Не удалось связаться с ботом уведомлений. Попробуйте ещё раз чуть позже.');
+                return;
+            }
+            const url = `https://t.me/${botUsername}?start=sub_${selectedStationId}`;
+            if (window.Telegram?.WebApp?.openTelegramLink) {
+                window.Telegram.WebApp.openTelegramLink(url);
+            } else {
+                window.open(url, '_blank');
+            }
+            // Помечаем локально: пользователь ушёл оформлять подписку в боте.
+            // Точный статус хранится на сервере (subscribers.json), это лишь UI-подсказка.
+            markLocalSub(selectedStationId);
+            updateSubscribeButton();
         }
 
         // ==================== СИНХРОНИЗАЦИЯ ====================
@@ -589,7 +655,7 @@
         function openPanel(sid) {
             selectedStationId = sid;
             document.getElementById('stationName').textContent = stationsData[sid].address;
-            resetForm(); updateStats(); renderComments(); updateSubmit();
+            resetForm(); updateStats(); renderComments(); updateSubmit(); updateSubscribeButton();
             document.getElementById('commentPanel').classList.add('active');
         }
         function closePanel() {
@@ -692,6 +758,8 @@
                 timestamp: Date.now(),
                 userId: window.Telegram?.WebApp?.initDataUnsafe?.user?.id?.toString() || 'anon'
             };
+            // Комментарий с отметкой "бензин есть" уходит на сервер, который
+            // сам разошлёт уведомления всем, кто подписан на эту АЗС в боте.
             stationsData[selectedStationId].comments.push(comment);
             saveData(stationsData);
             const synced = await submitToServer(selectedStationId, comment);
@@ -711,6 +779,7 @@
 
         initTheme();
         init2GIS();
+        fetchBotInfo();
         setInterval(loadCommentsFromServer, 30000);
         setInterval(renderMarkers, 60000);
     </script>
