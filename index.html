@@ -230,6 +230,49 @@
         .comments-list::-webkit-scrollbar { width: 2px; }
         .comments-list::-webkit-scrollbar-track { background: transparent; }
         .comments-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+        /* Кнопка "Связь" в шапке */
+        .contact-btn { font-size: 16px; }
+
+        /* Оверлеи (дисклеймер / связь) */
+        .app-overlay {
+            position: fixed; inset: 0; z-index: 5000;
+            background: rgba(0,0,0,0.5); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+            display: flex; align-items: center; justify-content: center;
+            padding: 20px; opacity: 0; pointer-events: none;
+            transition: opacity 0.28s ease;
+        }
+        .app-overlay.active { opacity: 1; pointer-events: all; }
+        .app-overlay.closing { opacity: 0; }
+        .app-modal {
+            background: var(--panel-bg); border: 1px solid var(--border);
+            border-radius: var(--radius-lg); box-shadow: 0 20px 60px rgba(0,0,0,0.35);
+            padding: 24px 22px; max-width: 360px; width: 100%;
+            text-align: center; position: relative;
+            transform: translateY(24px) scale(0.94); opacity: 0;
+            transition: transform 0.32s cubic-bezier(.34,1.56,.64,1), opacity 0.28s ease;
+        }
+        .app-overlay.active .app-modal { transform: translateY(0) scale(1); opacity: 1; }
+        .app-modal-icon {
+            font-size: 40px; margin-bottom: 10px; display: inline-block;
+            animation: iconPop 0.5s cubic-bezier(.34,1.56,.64,1) 0.15s both;
+        }
+        @keyframes iconPop { from { transform: scale(0.3) rotate(-15deg); opacity: 0; } to { transform: scale(1) rotate(0); opacity: 1; } }
+        .app-modal h2, .app-modal h3 { font-size: 17px; font-weight: 800; margin-bottom: 10px; }
+        .app-modal p { font-size: 13px; color: var(--text-secondary); line-height: 1.5; margin-bottom: 8px; }
+        .app-modal ul { list-style: none; text-align: left; margin: 12px 0; display: flex; flex-direction: column; gap: 6px; }
+        .app-modal li { font-size: 12px; color: var(--text-secondary); background: var(--surface2); padding: 8px 10px; border-radius: var(--radius-sm); }
+        .app-modal-btn {
+            width: 100%; padding: 12px; background: var(--accent); color: #fff;
+            border: none; border-radius: var(--radius-sm); font-size: 14px; font-weight: 700;
+            cursor: pointer; margin-top: 12px; transition: transform 0.15s, opacity 0.15s;
+            text-decoration: none; display: block; box-sizing: border-box;
+        }
+        .app-modal-btn:active { transform: scale(0.97); opacity: 0.9; }
+        .app-modal-close {
+            position: absolute; top: 10px; right: 10px;
+        }
+        #contactOverlay .app-modal-btn { background: #29a9eb; }
     </style>
 </head>
 <body>
@@ -243,7 +286,34 @@
         </div>
         <div class="header-right">
             <span class="sync-dot" id="syncDot"></span>
+            <button class="theme-btn contact-btn" onclick="openContactModal()" title="Связь">💬</button>
             <button class="theme-btn" id="themeToggle" onclick="toggleTheme()">🌙</button>
+        </div>
+    </div>
+
+    <!-- Дисклеймер при первом входе -->
+    <div class="app-overlay" id="disclaimerOverlay">
+        <div class="app-modal">
+            <div class="app-modal-icon">⚠️</div>
+            <h2>Важное уведомление</h2>
+            <p>Данный сервис предоставляет информацию о заправках на основе пользовательских данных.</p>
+            <ul>
+                <li>📌 Мы не собираем и не храним личные данные, геолокацию, контакты</li>
+                <li>📌 Сервис работает без регистрации, анонимно</li>
+            </ul>
+            <p>Нажимая кнопку ниже, вы подтверждаете ознакомление.</p>
+            <button class="app-modal-btn" onclick="acceptDisclaimer()">✅ Ознакомлен</button>
+        </div>
+    </div>
+
+    <!-- Окно "Связь" -->
+    <div class="app-overlay" id="contactOverlay">
+        <div class="app-modal">
+            <button class="close-btn app-modal-close" onclick="closeContactModal()">✕</button>
+            <div class="app-modal-icon">💬</div>
+            <h3>Связь с нами</h3>
+            <p>Вопросы, предложения и ошибки — пишите в наш Telegram-канал.</p>
+            <a class="app-modal-btn" href="https://t.me/astrabenz" target="_blank" rel="noopener">📣 Открыть @astrabenz</a>
         </div>
     </div>
 
@@ -435,6 +505,37 @@
         function toggleFilter() {
             document.getElementById('filterWrapper').classList.toggle('collapsed');
         }
+
+        // ==================== ДИСКЛЕЙМЕР ПРИ ВХОДЕ ====================
+        const DISCLAIMER_KEY = 'astrakhan_fuel_disclaimer_accepted_v1';
+        function checkDisclaimer() {
+            if (!localStorage.getItem(DISCLAIMER_KEY)) {
+                requestAnimationFrame(() => {
+                    document.getElementById('disclaimerOverlay').classList.add('active');
+                });
+            }
+        }
+        function acceptDisclaimer() {
+            localStorage.setItem(DISCLAIMER_KEY, '1');
+            const overlay = document.getElementById('disclaimerOverlay');
+            overlay.classList.add('closing');
+            overlay.classList.remove('active');
+            setTimeout(() => overlay.classList.remove('closing'), 300);
+        }
+
+        // ==================== ОКНО "СВЯЗЬ" ====================
+        function openContactModal() {
+            document.getElementById('contactOverlay').classList.add('active');
+        }
+        function closeContactModal() {
+            const overlay = document.getElementById('contactOverlay');
+            overlay.classList.add('closing');
+            overlay.classList.remove('active');
+            setTimeout(() => overlay.classList.remove('closing'), 300);
+        }
+        document.getElementById('contactOverlay').addEventListener('click', (e) => {
+            if (e.target.id === 'contactOverlay') closeContactModal();
+        });
 
         // ==================== УВЕДОМЛЕНИЯ ЧЕРЕЗ TG БОТА ====================
         async function fetchBotInfo() {
@@ -778,6 +879,7 @@
         }
 
         initTheme();
+        checkDisclaimer();
         init2GIS();
         fetchBotInfo();
         setInterval(loadCommentsFromServer, 30000);
